@@ -42,6 +42,7 @@ Public Const SERVICE_INTERROGATE = &H80
 Public Const SERVICE_USER_DEFINED_CONTROL = &H100
 Public Const SERVICE_ALL_ACCESS = (STANDARD_RIGHTS_REQUIRED Or SERVICE_QUERY_CONFIG Or SERVICE_CHANGE_CONFIG Or SERVICE_QUERY_STATUS Or SERVICE_ENUMERATE_DEPENDENTS Or SERVICE_START Or SERVICE_STOP Or SERVICE_PAUSE_CONTINUE Or SERVICE_INTERROGATE Or SERVICE_USER_DEFINED_CONTROL)
 
+Public Const OBJECT_NAME As String = "ObjectName"
 
 Public Type SERVICE_STATUS
     dwServiceType As Long
@@ -78,6 +79,11 @@ Public Sub msNew_Click()
     Dim index_count As Long
     Dim num_count As Long
     Dim sIndex As Integer
+    Dim hKey As Long, hKey2 As Long
+    Dim nType As Long, lLength As Long, lPtr As Long
+    Dim ErrCtrl As Long, Start As Long, T As Long
+    Dim Have1 As Boolean, Have2 As Boolean, Have3 As Boolean, Have4 As Boolean
+    Dim ImagePath As String
     
     num_count = 0
     index_count = 0
@@ -89,29 +95,54 @@ Public Sub msNew_Click()
         
     DoEvents:
     Menu.LVServer.ListItems.Clear
+    
+    hKey = OpenRegKey("我的电脑\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services", KEY_ALL_ACCESS, True)
+    If hKey = 0 Then Exit Sub
 
-    Do While r_initial <> " "
-        r_initial = Registry.ListSubKey(eHKEY_LOCAL_MACHINE, "System\currentcontrolset\services", index_count)
+    Do While GetRegKey(hKey, index_count, r_initial, "")
+        hKey2 = OpenRegKey("我的电脑\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\" & r_initial, KEY_ALL_ACCESS, True)
+        If hKey2 = 0 Then GoTo Try
+        ErrCtrl = QueryValueKeyDWord(hKey2, "ErrorControl", Have1)
+        Start = QueryValueKeyDWord(hKey2, "Start", Have2)
+        If Have2 Then If (Start < 2) Or (Start > 4) Then Have2 = False
+        T = QueryValueKeyDWord(hKey2, "Type", Have3)
+        ImagePath = QueryValueKeyString(hKey2, "ImagePath", Have4)
 
-        If r_initial = "" Then
-            Exit Sub
-        End If
-        rv_value = Registry.GetValue(eHKEY_LOCAL_MACHINE, "System\currentcontrolset\services\" & r_initial, "ObjectName")
-
-        If rv_value <> "" Then
+        If Have1 And Have2 And Have3 And Have4 Then
             num_count = num_count + 1
             'lstServices.AddItem r_initial 'num_count & ".) " &
-            Menu.LVServer.ListItems.Add , , r_initial
-            GetServerInfo r_initial, num_count
+            With Menu.LVServer.ListItems.Add(, , r_initial)
+                On Error GoTo Try
+                .SubItems(1) = ServiceStatus("", r_initial)
+                .SubItems(2) = Choose(Start, Null, "自动", "手动", "禁用")
+                .SubItems(3) = ImagePath
+                ImagePath = QueryValueKeyString(hKey2, "Description", Have1)
+                If Have1 Then
+                    .SubItems(4) = ImagePath
+                Else
+                    .SubItems(4) = "无法获取描述."
+                End If
+                ImagePath = QueryValueKeyString(hKey2, "ObjectName", Have1)
+                If Have1 Then
+                    .SubItems(5) = SetupStartPath(ImagePath)
+                End If
+                ImagePath = QueryValueKeyString(hKey2, "ServiceDll", Have1)
+                If Have1 Then
+                    .SubItems(6) = SetupStartPath(ImagePath)
+                End If
+            End With
+            ZwClose hKey2
         End If
         
-        index_count = index_count + 1
         'LVServer.ListItems(sIndex).Selected = True
         'LVServer.ListItems(sIndex).EnsureVisible
-        Menu.Label5.Caption = "共有" & (num_count) & "个服务"
         'lblServiceCount = "当前 " & index_count & " 个服务"
         'If index_count > 15 Then Exit Sub
+Try:
     Loop
+    
+    ZwClose hKey
+    Menu.Label5.Caption = "共有" & (num_count) & "个服务"
     
     
     'lblServiceCount = index_count & " services"
@@ -121,7 +152,7 @@ Public Sub msNew_Click()
     'ListView1_ItemClick ListView1.ListItems(1)
 End Sub
 
-Public Function GetServerInfo(ByVal ServerNames As String, ByVal CCount As Long)
+Public Sub GetServerInfo(ByVal ServerNames As String, ByVal CCount As Long, ByVal hKey As Long)
     Dim Registry As clsRegistry
     Set Registry = New clsRegistry
     Dim r_initial   As String
@@ -133,12 +164,17 @@ Public Function GetServerInfo(ByVal ServerNames As String, ByVal CCount As Long)
     Dim DllPath     As String
     r_initial = ServerNames
 
-    If r_initial = "" Then Exit Function
-    rv_value = Registry.GetValue(eHKEY_LOCAL_MACHINE, "System\currentcontrolset\services\" & r_initial, "Description")
-    StartType = Registry.GetValue(eHKEY_LOCAL_MACHINE, "System\currentcontrolset\services\" & r_initial, "start")
-    StartPath = Registry.GetValue(eHKEY_LOCAL_MACHINE, "System\currentcontrolset\services\" & r_initial, "imagepath")
-    LoginUser = Registry.GetValue(eHKEY_LOCAL_MACHINE, "System\currentcontrolset\services\" & r_initial, "ObjectName")
-    DllPath = Registry.GetValue(eHKEY_LOCAL_MACHINE, "System\currentcontrolset\services\" & r_initial & "\Parameters", "ServiceDll")
+    If r_initial = "" Then Exit Sub
+    hKey = OpenRegKey("我的电脑\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\" & ServerNames, KEY_ALL_ACCESS, False)
+    If hKey = 0 Then Exit Sub
+    'rv_value = QueryValueKeyString(hKey, "Description")
+    'StartType = QueryValueKeyDWord(hKey, "Start")
+    'StartPath = QueryValueKeyString(hKey, "ImagePath")
+    'LoginUser = QueryValueKeyString(hKey, "ObjectName")
+    ZwClose hKey
+    hKey = OpenRegKey("我的电脑\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\" & ServerNames & "\Parameters", KEY_ALL_ACCESS, False)
+    'DllPath = QueryValueKeyString(hKey, "ServiceDll")
+    ZwClose hKey
 
     Select Case StartType
     
@@ -159,22 +195,26 @@ Public Function GetServerInfo(ByVal ServerNames As String, ByVal CCount As Long)
         Menu.LVServer.ListItems(CCount).SubItems(4) = "无法获取描述."
         serv_status = ServiceStatus("", r_initial)
         Menu.LVServer.ListItems(CCount).SubItems(1) = serv_status
-        Exit Function
+        Exit Sub
     End If
 
     Menu.LVServer.ListItems(CCount).SubItems(4) = rv_value
     serv_status = ServiceStatus("", r_initial)
     Menu.LVServer.ListItems(CCount).SubItems(1) = serv_status
-End Function
+End Sub
 
 Public Function SetupStartPath(ByVal Path As String) As String
     Dim temp As String
     
     If Len(Path) = 0 Then Exit Function
+    If InStr(Path, "\") <= 0 Then
+        SetupStartPath = Path
+        Exit Function
+    End If
     temp = left$(Path, InStr(Path, "\") - 1)
 
     If InStr(temp, "%") > 0 Then
-        If LCase$(temp) = "%systemroot%" Then
+        If LCase$(temp) = "%systemroot%" Or InStr(temp, ":") <= 0 Then
             SetupStartPath = Environ("windir") & Mid(Path, InStr(Path, "\"))
         Else
             SetupStartPath = Environ(temp) & Mid(Path, InStr(Path, "\"))

@@ -1,10 +1,9 @@
 Attribute VB_Name = "Driver"
 Option Explicit
 
-Private Declare Function EnumDeviceDrivers Lib "psapi.dll" (ByRef lpImageBase As Long, ByVal cb As Long, ByRef lpcbNeeded As Long) As Long
-Private Declare Function GetDeviceDriverBaseName Lib "psapi.dll" Alias "GetDeviceDriverBaseNameA" (ByVal ImageBase As Long, ByVal lpBaseName As String, ByVal nSize As Long) As Long
-Private Declare Function GetDeviceDriverFileName Lib "psapi.dll" Alias "GetDeviceDriverFileNameA" (ByVal ImageBase As Long, ByVal lpFileName As String, ByVal nSize As Long) As Long
-
+Public Declare Function EnumDeviceDrivers Lib "psapi.dll" (ByRef lpImageBase As Long, ByVal cb As Long, ByRef lpcbNeeded As Long) As Long
+Public Declare Function GetDeviceDriverBaseName Lib "psapi.dll" Alias "GetDeviceDriverBaseNameA" (ByVal ImageBase As Long, ByVal lpBaseName As String, ByVal nSize As Long) As Long
+Public Declare Function GetDeviceDriverFileName Lib "psapi.dll" Alias "GetDeviceDriverFileNameA" (ByVal ImageBase As Long, ByVal lpFileName As String, ByVal nSize As Long) As Long
 
 Public Enum enmDeviceDriver
     BaseAddress = 0

@@ -186,6 +186,7 @@ Option Explicit
 
 Dim fhwnd, lhwnd As Long
 Dim hideme, hideok As Boolean
+Dim Align As Boolean
 
 Private Sub Form_Load()
     Timer1.Tag = 1
@@ -195,14 +196,22 @@ Private Sub Form_Load()
     State.left = 0
     State.Width = Screen.Width
     'Eric
-    Dim ret As Long
+    Dim Ret As Long
 
-    ret = GetWindowLong(Me.hwnd, GWL_EXSTYLE)
-    ret = ret Or WS_EX_LAYERED Or WS_EX_TRANSPARENT
-    SetWindowLong Me.hwnd, GWL_EXSTYLE, ret
-    SetLayeredWindowAttributes Me.hwnd, 0, 255 * 0.9, LWA_ALPHA
+    Ret = GetWindowLong(Me.hWnd, GWL_EXSTYLE)
+    Ret = Ret Or WS_EX_LAYERED Or WS_EX_TRANSPARENT
+    SetWindowLong Me.hWnd, GWL_EXSTYLE, Ret
+    SetLayeredWindowAttributes Me.hWnd, 0, 255 * 0.9, LWA_ALPHA
+    SetWindowPos Me.hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE Or SWP_NOMOVE
+    For Ret = 1 To 255
+        GetAsyncKeyState Ret
+    Next
     '-----------------
     SetTextColor Me
+End Sub
+
+Private Sub Form_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+    top = Screen.Height - Height
 End Sub
 
 Private Sub Form_Unload(Cancel As Integer)
@@ -210,27 +219,103 @@ Private Sub Form_Unload(Cancel As Integer)
 End Sub
 
 Private Sub Timer1_Timer()
-    If GetAsyncKeyState(115) <> 0 Then
+    Dim mp As POINTAPI
+    Dim myRECT As RECT
+    GetCursorPos mp
+    If GetAsyncKeyState(115) <> 0 Then 'F4
         If hideme = True Then
             hideme = False
             hideok = True
+            Align = False
+            top = -Height
         ElseIf hideme = False Then
             hideme = True
             hideok = False
         End If
-        
         Sleep 200
     End If
     
-    If GetAsyncKeyState(114) <> 0 Then
-        Dim newText As String
-        newText = InputBox("请键入新的内容：", "修改标题", sTitle.Text)
-        If newText = "" Or newText = sTitle.Text Then
-            MsgBox "请修改内容！且值不能为空！", vbOKOnly + vbInformation, "警告"
-            Exit Sub
+    If hideok Or ((Not hideok) And hideme) Then '隐藏了或从隐藏转入显示
+        If Not Align And mp.y <= Me.Height \ 15 Then
+            top = Screen.Height
+            Align = True
+        ElseIf Align And mp.y >= Me.top \ 15 Then
+            top = -Me.Height
+            Align = False
         End If
-        SetWindowText sHwnd.Text, newText
     End If
+    
+    If Not hideme Then '从显示转入隐藏或显示着
+        If Not Align And mp.y <= Me.Height \ 15 Then
+            top = Screen.Height - Me.Height
+            Align = True
+        ElseIf Align And mp.y >= Me.top \ 15 Then
+            top = 0
+            Align = False
+        End If
+    End If
+    
+    If GetAsyncKeyState(114) <> 0 Then 'F3
+        Dim i As ListItem
+        With Menu.ListView1
+            For Each i In .ListItems
+                If i.SubItems(2) = sHwnd.Text Then
+                    i.Selected = True
+                    i.EnsureVisible
+                    If Menu.lLabels(0).BorderStyle = 0 Then
+                        Menu.lLabels_Click 0
+                    End If
+                    Menu.ListView1_MouseUp 2, 0, 0, 0 '显示菜单
+                    GoTo Main
+                End If
+            Next
+            If Menu.Check2.Value Then
+                Call EnumWindowsProc(sHwnd.Text, 0)
+                Set i = .ListItems(.ListItems.Count)
+            Else
+                Dim Parents() As Long, j As Long, hWnd As Long
+                ReDim Parents(0)
+                hWnd = CLng(sHwnd.Text)
+                Do Until hWnd = 0
+                    ReDim Preserve Parents(j)
+                    Parents(j) = hWnd
+                    j = j + 1
+                    hWnd = GetParent(hWnd)
+                Loop
+                Do Until j = 1
+                    j = j - 1
+                    nSelectedItemIndex(.Tag) = .SelectedItem.Index   '记录当前选择项的序号
+                    .Tag = .Tag + 1
+                    nSelectedItem(.Tag) = CLng(Parents(j))   '记录当前选择项的句柄
+                Loop
+                Call CNNew
+                For Each i In .ListItems
+                    If i.SubItems(2) = sHwnd.Text Then
+                        Exit For
+                    End If
+                Next
+                If i Is Nothing Then
+                    Call EnumWindowsProc(Parents(0), 0)
+                    For Each i In .ListItems
+                        If i.SubItems(2) = sHwnd.Text Then
+                            Exit For
+                        End If
+                    Next
+                    If i Is Nothing Then
+                        MsgBox "目标窗体不在显示的范围内（不是某进程、某线程、搜索中的窗体）！", vbInformation
+                        Exit Sub
+                    End If
+                End If
+            End If
+            If Menu.lLabels(0).BorderStyle <> 1 Then
+                Menu.lLabels_Click 0
+            End If
+            i.Selected = True
+            i.EnsureVisible
+            Menu.ListView1_MouseUp 2, 0, 0, 0 '显示菜单
+        End With
+    End If
+Main:
     
     If hideme = True And hideok = False Then
         HideForm
@@ -239,7 +324,7 @@ Private Sub Timer1_Timer()
         ShowForm
     End If
        
-    If GetAsyncKeyState(113) <> 0 Then
+    If GetAsyncKeyState(113) <> 0 Then 'F2
         Sleep 200
         If Timer1.Tag = 1 Then
             Timer1.Tag = 0
@@ -251,10 +336,7 @@ Private Sub Timer1_Timer()
     
     If Timer1.Tag = 0 Then Exit Sub
     
-    Dim mp As POINTAPI
-    Dim myRECT As RECT
     
-    GetCursorPos mp
     fhwnd = WindowFromPoint(mp.x, mp.y)
     
     If fhwnd <> lhwnd Then   '如果当前窗口未改变就不需要刷新
@@ -275,22 +357,36 @@ End Sub
 
 Private Sub HideForm()
     Dim i As Long
-    
-    For i = 1 To State.Height
-        State.top = State.top - 1
-        DoEvents
-        Sleep 3
-    Next i
+    If Not Align Then
+        For i = 0 To State.Height Step 5
+            State.top = State.top - 5
+            DoEvents
+            Sleep 3
+        Next i
+    Else
+        For i = 0 To State.Height Step 5
+            State.top = State.top + 5
+            DoEvents
+            Sleep 3
+        Next i
+    End If
     hideok = True
 End Sub
 
 Private Sub ShowForm()
     Dim i As Long
-    
-    For i = 1 To State.Height
-        State.top = State.top + 1
-        DoEvents
-        Sleep 3
-    Next i
+    If Not Align Then
+        For i = 0 To State.Height Step 5
+            State.top = State.top + 5
+            DoEvents
+            Sleep 3
+        Next i
+    Else
+        For i = 0 To State.Height Step 5
+            State.top = State.top - 5
+            DoEvents
+            Sleep 3
+        Next i
+    End If
     hideok = False
 End Sub

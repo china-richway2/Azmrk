@@ -1,18 +1,156 @@
 Attribute VB_Name = "System"
 Option Explicit
+'[winio]
+Public Type tagPhysStruct
+    dwPhysMemSizeInBytes As Long
+    Reserved1 As Long 'INT64的高位
+    pvPhysAddress As Long
+    Reserved2 As Long 'INT64的高位
+    PhysicalMemoryHandle As Long
+    Reserved3 As Long 'INT64的高位
+    pvPhysMemLin As Long
+    Reserved4 As Long 'INT64的高位
+    pvPhysSection As Long
+    Reserved5 As Long 'INT64的高位
+End Type
+    
+Public Declare Function OpenSCManager Lib "advapi32.dll" Alias "OpenSCManagerA" (ByVal lpMachineName As String, ByVal lpDatabaseName As String, ByVal dwDesiredAccess As Long) As Long
+Public Declare Function OpenService Lib "advapi32.dll" Alias "OpenServiceA" (ByVal hSCManager As Long, ByVal lpServiceName As String, ByVal dwDesiredAccess As Long) As Long
+Public Declare Function CloseServiceHandle Lib "advapi32.dll" (ByVal hSCObject As Long) As Long
+Public Declare Function StartService Lib "advapi32.dll" Alias "StartServiceA" (ByVal hService As Long, ByVal dwNumServiceArgs As Long, ByVal lpServiceArgVectors As Long) As Long
+
+Public Declare Function InitializeWinIo Lib "winio32" () As Long
+Public Declare Function ShutdownWinIo Lib "winio32" () As Long
+
+Public Declare Function InstallWinIoDriver Lib "winio32" (ByVal strWinIoDriverPath As Long, ByVal bIsDemendLoaded As Long) As Long
+Public Declare Function RemoveWinIoDriver Lib "winio32" () As Long
+
+Public Declare Function GetPortVal Lib "winio32" (ByVal wPortAddr As Integer, pdwPortVal As Long, ByVal bSize As Byte) As Long
+Public Declare Function SetPortVal Lib "winio32" (ByVal wPortAddr As Integer, ByVal dwPortVal As Long, ByVal bSize As Byte) As Long
+'bSize只能为1 2或4
+
+Public Declare Function MapPhysToLin Lib "winio32" (Data As tagPhysStruct) As Long
+Public Declare Function UnmapPhysicalMemory Lib "winio32" (Data As tagPhysStruct) As Long
+Public Declare Function GetPhysLong Lib "winio32" (ByVal pbPhysAddr As Long, pdwPhysVal As Long) As Long
+'根据物理地址获取物理地址指向的DWORD值。
+Public Declare Function SetPhysLong Lib "winio32" (ByVal pbPhysAddr As Long, ByVal dwPhysVal As Long) As Long
+'设置物理地址指向的DWORD值。
+
 Public Declare Function CreateToolhelp32Snapshot Lib "kernel32" (ByVal dwFlags As Long, ByVal th32ProcessID As Long) As Long
 Public Declare Function ZwQuerySystemInformation Lib "NTDLL.DLL" (ByVal SystemInformationClass As SYSTEM_INFORMATION_CLASS, ByVal pSystemInformation As Long, ByVal SystemInformationLength As Long, ByRef ReturnLength As Long) As Long
 Public Declare Function ZwSystemDebugControl Lib "NTDLL.DLL" (ByVal scCommand As SYSDBG_COMMAND, ByVal pInputBuffer As Long, ByVal InputBufferLength As Long, ByVal pOutputBuffer As Long, ByVal OutputBufferLength As Long, ByRef pReturnLength As Long) As Long
+Public Declare Function RtlInitUnicodeString Lib "ntdll" (UnicodeString As UNICODE_STRING, ByVal StringPtr As Long) As Long
+'Public Declare Function SetSecurityInfo Lib "advapi32.dll" (ByVal Handle As Long, ByVal ObjectType As SE_OBJECT_TYPE, ByVal SecurityInfo As Long, ppsidOwner As Long, ppsidGroup As Long, ppDacl As Any, ppSacl As Any) As Long
+'Public Declare Function GetSecurityInfo Lib "advapi32.dll" (ByVal Handle As Long, ByVal ObjectType As SE_OBJECT_TYPE, ByVal SecurityInfo As Long, ppsidOwner As Long, ppsidGroup As Long, ppDacl As Any, ppSacl As Any, ppSecurityDescriptor As Long) As Long
+'Public Declare Function SetEntriesInAcl Lib "advapi32.dll" Alias "SetEntriesInAclA" (ByVal cCountOfExplicitEntries As Long, pListOfExplicitEntries As EXPLICIT_ACCESS, ByVal OldAcl As Long, NewAcl As Long) As Long
+Public Declare Function GetVersionEx Lib "kernel32" Alias "GetVersionExA" (LpVersionInformation As OSVERSIONINFO) As Long
+'Dim PhysicalMemory As Long, nMemoryManagementMap As Long
+'Public Declare Sub BuildExplicitAccessWithName _
+Lib "advapi32.dll" _
+Alias "BuildExplicitAccessWithNameA" (pExplicitAccess As EXPLICIT_ACCESS, _
+ByVal pTrusteeName As String, _
+ByVal AccessPermissions As Long, _
+ByVal AccessMode As ACCESS_MODE, _
+ByVal Inheritance As Long)
 
+'Public Const ERROR_SUCCESS = 0&
+Public Const SECTION_MAP_WRITE = &H2
+Public Const SECTION_MAP_READ = &H4
+Public Const READ_CONTROL = &H20000
+Public Const WRITE_DAC = &H40000
+Public Const NO_INHERITANCE = 0
+Public Const DACL_SECURITY_INFORMATION = &H4
 
-Public Const STATUS_INFO_LENGTH_MISMATCH = &HC0000004
+Public Enum ACCESS_MODE
+    NOT_USED_ACCESS
+    GRANT_ACCESS
+    SET_ACCESS
+    DENY_ACCESS
+    REVOKE_ACCESS
+    SET_AUDIT_SUCCESS
+    SET_AUDIT_FAILURE
+End Enum
 
+Public Enum MULTIPLE_TRUSTEE_OPERATION
+    NO_MULTIPLE_TRUSTEE
+    TRUSTEE_IS_IMPERSONATE
+End Enum
+
+Public Enum TRUSTEE_FORM
+    TRUSTEE_IS_SID
+    TRUSTEE_IS_NAME
+End Enum
+
+Public Enum TRUSTEE_TYPE
+    TRUSTEE_IS_UNKNOWN
+    TRUSTEE_IS_USER
+    TRUSTEE_IS_GROUP
+End Enum
+
+Public Type TRUSTEE
+    pMultipleTrustee As Long
+    MultipleTrusteeOperation As MULTIPLE_TRUSTEE_OPERATION
+    TrusteeForm As TRUSTEE_FORM
+    TrusteeType As TRUSTEE_TYPE
+    ptstrName As String
+End Type
+
+Public Type EXPLICIT_ACCESS
+    grfAccessPermissions As Long
+    grfAccessMode As ACCESS_MODE
+    grfInheritance As Long
+    TRUSTEE As TRUSTEE
+End Type
+
+Public Declare Function ZwOpenSection Lib "NTDLL.DLL" (SectionHandle As Long, ByVal DesiredAccess As Long, ObjectAttributes As Any) As Long
+'Public Declare Function LocalFree Lib "kernel32" (ByVal hMem As Any) As Long
+Public Declare Function MapViewOfFile Lib "kernel32" (ByVal hFileMappingObject As Long, ByVal dwDesiredAccess As Long, ByVal dwFileOffsetHigh As Long, ByVal dwFileOffsetLow As Long, ByVal dwNumberOfBytesToMap As Long) As Long
+Public Declare Function UnmapViewOfFile Lib "kernel32" (lpBaseAddress As Any) As Long
+Public Type LIST_ENTRY
+    Blink                           As Long
+    Flink                           As Long
+End Type
+
+Public Type OSVERSIONINFO
+    dwOSVersionInfoSize             As Long
+    dwMajorVersion                  As Long
+    dwMinorVersion                  As Long
+    dwBuildNumber                   As Long
+    dwPlatformId                    As Long
+    szCSDVersion                    As String * 128
+End Type
+
+Public Type UNICODE_STRING
+    Length                          As Integer
+    MaximumLength                   As Integer
+    Buffer                          As Long
+End Type
+
+Public Type INT64
+    dwLow                           As Long
+    dwHigh                          As Long
+End Type
 Public Const TH32CS_SNAPHEAPLIST = &H1
 Public Const TH32CS_SNAPPROCESS = &H2
 Public Const TH32CS_SNAPTHREAD = &H4
 Public Const TH32CS_SNAPMODULE = &H8
 Public Const TH32CS_SNAPALL = (TH32CS_SNAPHEAPLIST Or TH32CS_SNAPPROCESS Or TH32CS_SNAPTHREAD Or TH32CS_SNAPMODULE)
 Public Const TH32CS_INHERIT = &H80000000
+
+Public Enum SE_OBJECT_TYPE
+    SE_UNKNOWN_OBJECT_TYPE = 0
+    SE_FILE_OBJECT
+    SE_SERVICE
+    SE_PRINTER
+    SE_REGISTRY_KEY
+    SE_LMSHARE
+    SE_KERNEL_OBJECT
+    SE_WINDOW_OBJECT
+    SE_DS_OBJECT
+    SE_DS_OBJECT_ALL
+    SE_PROVIDER_DEFINED_OBJECT
+    SE_WMIGUID_OBJECT
+End Enum
 
 
 Public Enum SYSTEM_INFORMATION_CLASS
@@ -34,7 +172,7 @@ Public Enum SYSTEM_INFORMATION_CLASS
       SystemNonPagedPoolInformation
       SystemHandleInformation
       SystemObjectInformation
-      SystemPageFileInformation
+      SystemPagefileInformation
       SystemVdmInstemulInformation
       SystemVdmBopInformation
       SystemFileCacheInformation
@@ -101,6 +239,12 @@ Public Enum SYSTEM_INFORMATION_CLASS
       MaxSystemInfoClass    '// MaxSystemInfoClass should always be the last enum
 End Enum
 
+Public Type SYSTEM_BASIC_INFORMATION
+    Reserved1(1 To 24) As Byte
+    Reserved2(1 To 4) As Long 'PVOID
+    NumberOfProcessors As Byte
+End Type
+
 Public Enum SYSDBG_COMMAND
     '//以下5个在Windows NT各个版本上都有
     SysDbgGetTraceInformation = 1
@@ -164,29 +308,93 @@ Public Type SECURITY_ATTRIBUTES
     bInheritHandle As Long
 End Type
 
+Public Sub ReadPhysicalMemory(ByVal addr As Long, ByVal Buffer As Long, ByVal Size As Long)
+    Dim tg As tagPhysStruct, pMemory As Long
+    Dim NewAddr As Long, NewSize As Long
+    NewAddr = addr And &HFFFFF000
+    NewSize = ((addr - NewAddr) + Size + &HFFF) And &HFFFFF000
+    tg.pvPhysAddress = NewAddr
+    tg.dwPhysMemSizeInBytes = NewSize
+    pMemory = MapPhysToLin(tg)
+    If pMemory = 0 Then Exit Sub
+    CopyMemory Buffer, pMemory - NewAddr + addr, Size
+    UnmapPhysicalMemory tg
+End Sub
 
-Public Function ReadKernelMemory(ByVal Addr As Long, ByVal buffer As Long, ByVal size As Long, ReturnLength As Long) As Boolean
-    Dim QueryBuff As MEMORY_CHUNKS
+Public Sub WritePhysicalMemory(ByVal addr As Long, ByVal Buffer As Long, ByVal Size As Long)
+    Dim tg As tagPhysStruct, pMemory As Long
+    Dim NewAddr As Long, NewSize As Long
+    NewAddr = addr And &HFFFFF000
+    NewSize = ((addr - NewAddr) + Size + &HFFF) And &HFFFFF000
+    tg.pvPhysAddress = NewAddr
+    tg.dwPhysMemSizeInBytes = NewSize
+    pMemory = MapPhysToLin(tg)
+    If pMemory = 0 Then Exit Sub
+    CopyMemory pMemory - NewAddr + addr, Buffer, Size
+    UnmapPhysicalMemory tg
+End Sub
+
+Public Function LinearToPhys(ByVal Linear As Long) As Long
+    Dim lDirectoty As Long, VerInfo As OSVERSIONINFO
+    VerInfo.dwOSVersionInfoSize = Len(VerInfo)
+    If (GetVersionEx(VerInfo)) <> 0 Then
+        If VerInfo.dwPlatformId = 2 Then
+            If VerInfo.dwMajorVersion = 5 Then
+                Select Case VerInfo.dwMinorVersion
+                Case 0
+                    lDirectoty = &H30000
+                Case 1
+                    lDirectoty = &H39000
+                End Select
+            End If
+        End If
+    End If
+    If lDirectoty = 0 Then
+        MsgBox "不支持的系统，不能读取内核内存！", vbCritical
+        Error 10000
+    End If
+    Dim mPGDE(&H3FF) As Long
+    ReadPhysicalMemory lDirectoty, VarPtr(mPGDE(0)), &H1000 '获取PGDE
     
-    With QueryBuff
-        .Address = Addr
-        .pData = buffer
-        .Length = size
-    End With
+    Dim PGDE As Long, PTE As Long, lTemp As Long
+    If Linear < 0 Then
+        lTemp = ((Linear And &H7FFFFFFF) \ &H400000) + &H200
+    Else
+        lTemp = Linear \ &H400000
+    End If
+    lTemp = mPGDE(lTemp) '获取PTE
     
-    ZwSystemDebugControl 8, VarPtr(QueryBuff), Len(QueryBuff), 0, 0, ReturnLength
-    ReadKernelMemory = ReturnLength = size
+    If (lTemp And 1) <> 0 Then
+        ReadPhysicalMemory (lTemp And &HFFFFF000) + ((Linear And &H3FF000) \ &H1000) * 4, VarPtr(lTemp), 4 '获取PDE
+        LinearToPhys = (lTemp And &HFFFFF000) + (Linear And &HFFF) '算出物理地址
+    End If
 End Function
 
-Public Function WriteKernelMemory(ByVal Addr As Long, ByVal buffer As Long, ByVal size As Long, ReturnLength As Long) As Boolean
-    Dim QueryBuff As MEMORY_CHUNKS
-    
-    With QueryBuff
-        .Address = Addr
-        .pData = buffer
-        .Length = size
-    End With
-    
-    ZwSystemDebugControl 9, VarPtr(QueryBuff), Len(QueryBuff), 0, 0, ReturnLength
-    WriteKernelMemory = ReturnLength = size
+Public Function ReadKernelMemory(ByVal addr As Long, ByVal Buffer As Long, ByVal Size As Long, ReturnLength As Long) As Boolean
+   Dim pPhysical As Long
+   pPhysical = LinearToPhys(addr)
+   ReadPhysicalMemory pPhysical, Buffer, Size
+End Function
+
+Public Function WriteKernelMemory(ByVal addr As Long, ByVal Buffer As Long, ByVal Size As Long) As Boolean
+   Dim pPhysical As Long
+   pPhysical = LinearToPhys(addr)
+   WritePhysicalMemory pPhysical, Buffer, Size
+End Function
+
+Public Function OpenPhysicalMemory() As Long
+    OpenPhysicalMemory = InitializeWinIo
+End Function
+
+Public Function ClosePhysicalMemory() As Long
+    ClosePhysicalMemory = ShutdownWinIo
+End Function
+
+Public Function GetData(ByVal addr As Long) As Long
+    ReadPhysicalMemory LinearToPhys(addr), VarPtr(GetData), 4
+    'GetData = GetPhysLong(LinearToPhys(addr), GetData)
+End Function
+
+Public Function SetData(ByVal addr As Long, ByVal Value As Long) As Long
+    SetData = SetPhysLong(LinearToPhys(addr), Value)
 End Function

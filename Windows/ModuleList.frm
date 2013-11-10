@@ -1,6 +1,6 @@
 VERSION 5.00
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "msComCtl32.OCX"
 Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "msComDlg32.OCX"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "MSCOMCTL.ocx"
 Begin VB.Form ModuleList 
    BorderStyle     =   1  'Fixed Single
    Caption         =   "进程模块"
@@ -63,6 +63,9 @@ Begin VB.Form ModuleList
          End
          Begin VB.Menu mNewByVirtualMemory 
             Caption         =   "VirtualQueryEx"
+         End
+         Begin VB.Menu mNewByRead 
+            Caption         =   "读内存"
          End
       End
       Begin VB.Menu m01 
@@ -129,7 +132,7 @@ Private Sub Form_Load()
     'SetIcon ModuleList.hwnd, "IDR_MAINFRAME", True
     Dialog1.Filter = "动态链接库文件(*.dll,*.ocx)|*.dll;*.ocx"
     
-    Call MNNew(mPid)
+    Call MNNew(mPid, Me)
 End Sub
 
 Private Sub ListView1_ColumnClick(ByVal ColumnHeader As MSComctlLib.ColumnHeader)
@@ -162,7 +165,7 @@ Private Sub mLoadDll_Click()
     Dialog1.ShowOpen
     If Dialog1.FileName = "" Then Exit Sub
 
-    If FxRemoteProcessInsertDll(mPid, Dialog1.FileName) Then Call MNNew(mPid)
+    If FxRemoteProcessInsertDll(mPid, Dialog1.FileName, True) Then Call MNNew(mPid, Me)
     Dialog1.FileName = ""
 End Sub
 
@@ -177,22 +180,27 @@ Private Sub mLookNature_Click()
 End Sub
 
 Private Sub mNew_Click()
-    ListAllModules mPid
+    ListAllModules mPid, Me
     ListView1.Tag = 0
 End Sub
 
+Private Sub mNewByRead_Click()
+    ListView1.Tag = 2
+    MNNew mPid, Me
+End Sub
+
 Private Sub mNewByVirtualMemory_Click()
-    FxEnumModulesByVirtualMemory mPid
+    FxEnumModulesByVirtualMemory mPid, Me
     ListView1.Tag = 1
 End Sub
 
 Private Sub mUnloadDllByRemoteThread_Click()
     FxRemoteProcessFreeDll mPid, UnFormatHex(ListView1.SelectedItem.SubItems(1))
-    Call MNNew(mPid)
+    Call MNNew(mPid, Me)
 End Sub
 
 Private Sub mUnloadDllByUnmapView_Click()
     'FxUnloadDllByUnmapView mPid, 0, ListView1.SelectedItem.Text
     FxUnloadDllByUnmapView mPid, UnFormatHex(ListView1.SelectedItem.SubItems(1)), 0
-    Call MNNew(mPid)
+    Call MNNew(mPid, Me)
 End Sub

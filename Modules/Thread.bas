@@ -10,14 +10,14 @@ Public Declare Function CreateThread Lib "kernel32" (lpThreadAttributes As Long,
 Public Declare Function CreateRemoteThread Lib "kernel32" (ByVal hProcess As Long, lpThreadAttributes As SECURITY_ATTRIBUTES, ByVal dwStackSize As Long, ByVal lpStartAddress As Long, ByVal lpParameter As Long, ByVal dwCreationFlags As Long, lpThreadId As Long) As Long
 Public Declare Function Err_CreateRemoteThread Lib "kernel32" Alias "CreateRemoteThread" (ByVal hProcess As Long, lpThreadAttributes As SECURITY_ATTRIBUTES, ByVal dwStackSize As Long, lpStartAddress As Long, lpParameter As Any, ByVal dwCreationFlags As Long, lpThreadId As Long) As Long
 Public Declare Function GetExitCodeThread Lib "kernel32" (ByVal hThread As Long, lpExitCode As Long) As Long
-Public Declare Function PostThreadMessage Lib "user32" Alias "PostThreadMessageA" (ByVal idThread As Long, ByVal msg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+Public Declare Function PostThreadMessage Lib "user32" Alias "PostThreadMessageA" (ByVal idThread As Long, ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
 Public Declare Function ZwQueryInformationThread Lib "NTDLL.DLL" (ByVal hThread As Long, ByVal ThreadInformationClass As THREADINFOCLASS, ByRef ThreadInformation As Any, ByVal ThreadInformationLength As Long, ByRef ReturnLength As Long) As Long
-Public Declare Function ZwGetContextThread Lib "NTDLL.DLL" (ByVal hThread As Long, ByRef pContext As CONTEXT) As Long
-Public Declare Function ZwSetContextThread Lib "NTDLL.DLL" (ByVal hThread As Long, ByRef pContext As CONTEXT) As Long
 Public Declare Function ZwOpenThread Lib "NTDLL.DLL" (ByRef ThreadHandle As Long, ByVal AccessMask As Long, ByRef ObjectAttributes As OBJECT_ATTRIBUTES, ByRef ClientId As CLIENT_ID) As Long
 Public Declare Function ZwTerminateThread Lib "NTDLL.DLL" (ByVal ThreadHandle As Long, ByVal ExitStatus As Long) As Long
 Public Declare Function RtlCreateUserThread Lib "NTDLL.DLL" (ByVal hProcess As Long, ByRef ThreadSecurityDescriptor As Any, ByVal CreateSuspended As Long, ByVal ZeroBits As Long, ByVal MaximumStackSize As Long, ByVal CommittedStackSize As Long, ByVal StartAddress As Long, ByVal Parameter As Long, ByRef hThread As Long, ByRef ClientId As CLIENT_ID) As Long
-
+Public Declare Function GetCurrentThread Lib "kernel32" () As Long
+Public Declare Function ZwSuspendThread Lib "NTDLL.DLL" (ByVal hThread As Long, lpSuspendCount As Long) As Long
+Public Declare Function ZwResumeThread Lib "NTDLL.DLL" (ByVal hThread As Long, lpSuspendCount As Long) As Long
 
 Public Const THREAD_TERMINATE = &H1
 Public Const THREAD_SUSPEND_RESUME = &H2
@@ -30,13 +30,10 @@ Public Const THREAD_IMPERSONATE = &H100
 Public Const THREAD_DIRECT_IMPERSONATION = &H200
 Public Const THREAD_ALL_ACCESS = (STANDARD_RIGHTS_REQUIRED Or SYNCHRONIZE Or &H3FF)
 
-Public Const CONTEXT_ALPHA = &H20000
-Public Const CONTEXT_CONTROL = (CONTEXT_ALPHA Or &H1)
-Public Const CONTEXT_FLOATING_POINT = (CONTEXT_ALPHA Or &H2)
-Public Const CONTEXT_INTEGER = (CONTEXT_ALPHA Or &H4)
-
 Public Const MAXIMUM_SUPPORTED_EXTENSION = 512
 Public Const SIZE_OF_80387_REGISTERS = 80
+
+Public Const ZwGetCurrentThread As Long = -2 '0xFFFFFFFE
 
 
 Public Enum THREADINFOCLASS
@@ -60,18 +57,16 @@ Public Enum THREADINFOCLASS
     ThreadHideFromDebugger = 17
 End Enum
 
-
-Public Type FLOATING_SAVE_AREA
-    ControlWord As Long
-    StatusWord As Long
-    TagWord As Long
-    ErrorOffset As Long
-    ErrorSelector As Long
-    DataOffset As Long
-    DataSelector As Long
-    RegisterArea(SIZE_OF_80387_REGISTERS) As Byte
-    Cr0NpxState As Long
-End Type
+Public Enum THREAD_STATE
+    StateInitialized
+    StateReady
+    StateRunning
+    StateStandby
+    StateTerminated
+    StateWait
+    StateTransition
+    'StateUnknown
+End Enum
 
 Public Type THREAD_CONTEXT
     FltF0 As Long
@@ -150,40 +145,6 @@ Public Type THREAD_CONTEXT
     Fill(4) As Long      ' padding for 16-byte stack frame alignment
 End Type
 
-Public Type CONTEXT
-    ContextFlags As Long
-
-    Dr0 As Long
-    Dr1 As Long
-    Dr2 As Long
-    Dr3 As Long
-    Dr6 As Long
-    Dr7 As Long
-
-    FloatSave As FLOATING_SAVE_AREA
-
-    SegGs As Long
-    SegFs As Long
-    SegEs As Long
-    SegDs As Long
-
-    Edi As Long
-    Esi As Long
-    Ebx As Long
-    Edx As Long
-    Ecx As Long
-    Eax As Long
-
-    Ebp As Long
-    Eip As Long
-    SegCs As Long              ' MUST BE SANITIZED
-    EFlags As Long             ' MUST BE SANITIZED
-    Esp As Long
-    SegSs As Long
-
-    ExtendedRegisters(MAXIMUM_SUPPORTED_EXTENSION) As Byte
-End Type
-
 Public Type THREAD_BASIC_INFORMATION
     ExitStatus As Long
     TebBaseAddress As Long
@@ -211,9 +172,40 @@ Public Type USER_STACK
      ExpandableStackLimit As Long
      ExpandableStackBottom As Long
 End Type
+#If False Then
+Public Type KWAIT_REASON
+    ReasonExecutive
+    ReasonFreePage
+    ReasonPageIn
+    ReasonPoolAllocation
+    ReasonDelayExecution
+    ReasonSuspended
+    ReasonUserRequest
+    ReasonWrExecutive
+    ReasonWrFreePage
+    ReasonWrPageIn
+    ReasonWrPoolAllocation
+    ReasonWrDelayExecution
+    ReasonWrSuspended
+    ReasonWrUserRequest
+    ReasonWrEventPair
+    ReasonWrQueue
+    ReasonWrLpcReceive
+    ReasonWrLpcReply
+    ReasonWrVirtualMemory
+    ReasonWrPageOut
+    ReasonWrRendezvous
+    ReasonSpare2
+    ReasonSpare3
+    ReasonSpare4
+    ReasonSpare5
+    ReasonSpare6
+    ReasonWrKernel
+    ReasonMaximumWaitReason
+End Type
+#End If
 
-
-Public Sub ListAllThreads(ByVal pid As Long)
+Public Sub ListAllThreads(ByVal PID As Long, Optional ByVal OwnerForm As ThreadList = Nothing)
     Dim ThreadInfo As THREADENTRY32
     Dim tbi As THREAD_BASIC_INFORMATION
     Dim cne As Long
@@ -223,25 +215,33 @@ Public Sub ListAllThreads(ByVal pid As Long)
     Dim hThread As Long
     Dim StartAddr As Long
 
-    ThreadList.ListView1.ListItems.Clear
+    If OwnerForm Is Nothing Then
+        Set OwnerForm = ThreadList
+    End If
+    OwnerForm.ListView1.ListItems.Clear
     
-    msh = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, pid)
+    msh = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, PID)
     ThreadInfo.dwSize = LenB(ThreadInfo)
     
-    hProcess = FxNormalOpenProcess(PROCESS_QUERY_INFORMATION Or PROCESS_VM_READ, pid)
+    hProcess = FxNormalOpenProcess(PROCESS_QUERY_INFORMATION Or PROCESS_VM_READ, PID)
+    If hProcess = 0 Then
+        MsgBox "进程被关闭或拒绝访问！", vbInformation
+        Unload OwnerForm
+        Exit Sub
+    End If
     mPath = GetProcessName(GetProcessPath(hProcess))
-    ThreadList.Caption = "[" & (mPath) & "]中的线程"
+    OwnerForm.Caption = "[" & (mPath) & "]中的线程"
     
     cne = Thread32First(msh, ThreadInfo)
     Do While cne
-        If ThreadInfo.th32OwnerProcessID = pid Then
+        If ThreadInfo.th32OwnerProcessID = PID Then
             hThread = FxNormalOpenThread(THREAD_ALL_ACCESS, ThreadInfo.th32ThreadID)
             ZwQueryInformationThread hThread, ThreadBasicInformation, tbi, Len(tbi), 0
             StartAddr = FxGetThreadStartAddress(hThread)
             
             'ThreadList.ListView1.ListItems.Add , ,
-            ThreadList.ListView1.ListItems.Add , , CStr(ThreadInfo.th32ThreadID)
-            With ThreadList.ListView1.ListItems(ThreadList.ListView1.ListItems.Count)
+            OwnerForm.ListView1.ListItems.Add , , CStr(ThreadInfo.th32ThreadID)
+            With OwnerForm.ListView1.ListItems(OwnerForm.ListView1.ListItems.count)
                 .SubItems(1) = FormatHex(tbi.TebBaseAddress)
                 '.SubItems(2) = ETHREAD
                 .SubItems(3) = PriorityCheck(ThreadInfo.tpBasePri)
@@ -259,23 +259,23 @@ Public Sub ListAllThreads(ByVal pid As Long)
     ZwClose hProcess: hProcess = 0
     ZwClose msh: msh = 0
     
-    FxGetThreadEThread
+    FxGetThreadEThread OwnerForm
     
-    ThreadList.Caption = (ThreadList.Caption) & " (" & ThreadList.ListView1.ListItems.Count & ")"
+    ThreadList.Caption = (ThreadList.Caption) & " (" & ThreadList.ListView1.ListItems.count & ")"
 End Sub
 
-Public Sub SusResProcess(pid As Long, dType As Boolean)
+Public Sub SusResProcess(PID As Long, dType As Boolean)
     Dim ThreadInfo As THREADENTRY32
     Dim cne As Integer
     Dim msh As Long
     Dim hThread As Long
     
-    msh = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, pid)
+    msh = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, PID)
     ThreadInfo.dwSize = LenB(ThreadInfo)
     
     cne = Thread32First(msh, ThreadInfo)
     Do While cne
-        If ThreadInfo.th32OwnerProcessID = pid Then
+        If ThreadInfo.th32OwnerProcessID = PID Then
             hThread = OpenThread(THREAD_SUSPEND_RESUME, False, ThreadInfo.th32ThreadID)
             If dType = True Then
                 SuspendThread hThread
@@ -288,18 +288,18 @@ Public Sub SusResProcess(pid As Long, dType As Boolean)
     CloseHandle msh
 End Sub
 
-Public Function FxNormalOpenThread(ByVal dwDesiredAccess As Long, ByVal tid As Long) As Long
+Public Function FxNormalOpenThread(ByVal dwDesiredAccess As Long, ByVal TID As Long) As Long
     Dim oa As OBJECT_ATTRIBUTES
-    Dim Cid As CLIENT_ID
+    Dim cid As CLIENT_ID
     Dim hThread As Long
     Dim st As Long
     
     oa.Length = LenB(oa)
-    Cid.UniqueThread = tid
+    cid.UniqueThread = TID
 
-    st = ZwOpenThread(hThread, dwDesiredAccess, oa, Cid)
-    If Not NT_SUCCESS(st) Then
-        hThread = LzOpenThread(dwDesiredAccess, tid)
+    st = ZwOpenThread(hThread, dwDesiredAccess, oa, cid)
+    If Not NT_SUCCESS(st) Or hThread = 0 Then
+        hThread = LzOpenThread(dwDesiredAccess, TID)
     End If
     
     FxNormalOpenThread = hThread
@@ -308,7 +308,7 @@ End Function
 Public Function LzOpenThread(ByVal dwDesiredAccess As Long, ByVal ThreadID As Long) As Long
     '/**函数功能:通过复制句柄表里的句柄来“打开”线程**/
     Dim st As Long
-    Dim Cid As CLIENT_ID
+    Dim cid As CLIENT_ID
     Dim oa As OBJECT_ATTRIBUTES
     Dim NumOfHandle As Long
     Dim tbi As THREAD_BASIC_INFORMATION
@@ -317,8 +317,8 @@ Public Function LzOpenThread(ByVal dwDesiredAccess As Long, ByVal ThreadID As Lo
     
     oa.Length = Len(oa)
     '首先尝试ZwOpenThread
-    Cid.UniqueThread = ThreadID
-    st = ZwOpenThread(hThreadToRet, dwDesiredAccess, oa, Cid)
+    cid.UniqueThread = ThreadID
+    st = ZwOpenThread(hThreadToRet, dwDesiredAccess, oa, cid)
     If (NT_SUCCESS(st)) Then LzOpenThread = hThreadToRet: Exit Function
     st = 0
     
@@ -427,7 +427,7 @@ Public Function FxGetThreadModuleFileName(ByVal hProcess As Long, ByVal hThread 
     End If
 End Function
 
-Public Sub FxGetThreadEThread()
+Public Sub FxGetThreadEThread(ByVal OwnerForm As ThreadList)
     '/**函数功能:填充Lsitview中的ETHREAD项**/
     
     Dim bytBuf() As Byte
@@ -464,9 +464,9 @@ Public Sub FxGetThreadEThread()
         With h_info(i)
             If .ObjectTypeIndex = OB_TYPE_PROCESS + 1 Then
                 nowTid = PsGetTidByEThread(.pObject)
-                For j = 1 To ThreadList.ListView1.ListItems.Count
-                    If ThreadList.ListView1.ListItems(j).Text = nowTid And ThreadList.ListView1.ListItems(j).SubItems(2) = "" Then
-                        ThreadList.ListView1.ListItems(j).SubItems(2) = FormatHex(.pObject)
+                For j = 1 To OwnerForm.ListView1.ListItems.count
+                    If OwnerForm.ListView1.ListItems(j).Text = nowTid And OwnerForm.ListView1.ListItems(j).SubItems(2) = "" Then
+                        OwnerForm.ListView1.ListItems(j).SubItems(2) = FormatHex(.pObject)
                         Exit For
                     End If
                 Next j
@@ -489,7 +489,7 @@ Public Function FxDestroyThreadContext(ByVal hThread As Long) As Long
     Dim new_context As CONTEXT
     Dim errNum As Long
     
-    old_context.ContextFlags = CONTEXT_CONTROL
+    old_context.ContextFlags = CONTEXT_FULL
     If NT_SUCCESS(ZwGetContextThread(hThread, old_context)) Then
         'With old_context
             'MsgBox .Ebp & .Esp & .ContextFlags
@@ -514,30 +514,30 @@ Public Function PsGetTidByEThread(ByVal ETHREAD As Long) As Long
 
     Dim mc As MEMORY_CHUNKS
     Dim retl As CLIENT_ID
-    Dim Cid As CLIENT_ID
+    Dim cid As CLIENT_ID
     
     With mc
-        .Address = ETHREAD + &H1EC
-        .Length = Len(Cid)
-        .pData = VarPtr(Cid)
+        .address = ETHREAD + &H1EC
+        .Length = Len(cid)
+        .pData = VarPtr(cid)
     End With
     
     Dim st As Long
     st = ZwSystemDebugControl(SysDbgCopyMemoryChunks_0, VarPtr(mc), Len(mc), 0&, 0&, VarPtr(retl))
-    PsGetTidByEThread = Cid.UniqueThread
+    PsGetTidByEThread = cid.UniqueThread
     If (Not NT_SUCCESS(st)) Then PsGetTidByEThread = 0
 End Function
 
-Public Function FxCreateRemoteThread(ByVal pid As Long, ByVal lpStartAddress As Long, ByVal lpParameter As Long)
+Public Function FxCreateRemoteThread(ByVal PID As Long, ByVal lpStartAddress As Long, ByVal lpParameter As Long)
 'OsCreateRemoteThread(DWORD dwpid,StartAddress:pointer)
 '{
     Dim hProcess As Long
-    hProcess = OpenProcess(PROCESS_ALL_ACCESS, 0, pid) '//dwpid就是某些个系统进程ID
+    hProcess = OpenProcess(PROCESS_ALL_ACCESS, 0, PID) '//dwpid就是某些个系统进程ID
     
     Dim stack As USER_STACK
     
     'DWORD ret;
-    Dim ret As Long
+    Dim Ret As Long
     
     'ULONG n = 1024*1024;//1MB
     Dim n As Long
@@ -545,7 +545,7 @@ Public Function FxCreateRemoteThread(ByVal pid As Long, ByVal lpStartAddress As 
     
     Dim rAddress As Long
     
-    ret = ZwAllocateVirtualMemory(hProcess, rAddress, 0, n, MEM_RESERVE, PAGE_READWRITE)
+    Ret = ZwAllocateVirtualMemory(hProcess, rAddress, 0, n, MEM_RESERVE, PAGE_READWRITE)
     
     'stack.ExpandableStackBase = PCHAR(stack.ExpandableStackBottom) +1024*1024;
     'stack.ExpandableStackLimit = PCHAR(stack.ExpandableStackBase) - 4096;
@@ -581,13 +581,40 @@ Public Function FxCreateRemoteThread(ByVal pid As Long, ByVal lpStartAddress As 
 '}
 End Function
 
-Public Function ChCreateRemoteThread(ByVal hProcess As Long, ByVal StartAddress As Long, ByVal Parameter As Long, ByRef Cid As CLIENT_ID) As Long
+Public Function ChCreateRemoteThread(ByVal hProcess As Long, ByVal StartAddress As Long, ByVal Parameter As Long, ByRef cid As CLIENT_ID) As Long
     Dim hThread As Long
-    Dim ntStatus As Long
+    Dim NTSTATUS As Long
     
-    ntStatus = RtlCreateUserThread(hProcess, ByVal 0&, 0, 0, 0, 0, StartAddress, Parameter, hThread, Cid)
+    NTSTATUS = RtlCreateUserThread(hProcess, ByVal 0&, 0, 0, 0, 0, StartAddress, Parameter, hThread, cid)
     
     WaitForSingleObject hThread, INFINITE
     
     ChCreateRemoteThread = hThread
+End Function
+
+Public Function RtlTerminateThread(ByVal hThread As Long, ByVal dwExitCode As Long, ByVal hProcess As Long) As Long
+    Dim c As CONTEXT
+    c.ContextFlags = CONTEXT_FULL
+    Dim count As Long
+    If NT_SUCCESS(ZwSuspendThread(hThread, count)) Then
+        count = count + 1
+        Do Until count <= 1
+            ZwResumeThread hThread, count
+        Loop
+        If NT_SUCCESS(ZwGetContextThread(hThread, c)) Then
+            c.EIP = GetProcAddress(GetModuleHandle("ntdll"), "RtlExitUserThread")
+            ZwWriteVirtualMemory hProcess, ByVal c.Esp, dwExitCode, 4, 0
+            c.Esp = c.Esp + 4
+            If NT_SUCCESS(ZwSetContextThread(hThread, c)) Then
+                ZwResumeThread hThread, 0
+                If WaitForSingleObject(hThread, 1) = 0 Then
+                    RtlTerminateThread = 1
+                    Exit Function
+                End If
+            End If
+        End If
+    End If
+    If NT_SUCCESS(ZwTerminateThread(hThread, dwExitCode)) Then
+        RtlTerminateThread = 2
+    End If
 End Function

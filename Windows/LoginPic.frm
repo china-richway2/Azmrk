@@ -15,6 +15,15 @@ Begin VB.Form LoginPic
    ScaleWidth      =   6030
    ShowInTaskbar   =   0   'False
    StartUpPosition =   2  'ÆÁÄ»ÖÐÐÄ
+   Begin VB.Label Status 
+      BackStyle       =   0  'Transparent
+      ForeColor       =   &H00FFFFFF&
+      Height          =   255
+      Left            =   2640
+      TabIndex        =   0
+      Top             =   120
+      Width           =   3135
+   End
    Begin VB.Image Image1 
       Height          =   4155
       Left            =   0
@@ -29,7 +38,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-
+Public i As Long
 Private Sub Form_Load()
     App.TaskVisible = False
     'SkinH_Attach  'skin
@@ -43,4 +52,3 @@ Private Sub Form_Load()
 '    End With
 
 End Sub
-

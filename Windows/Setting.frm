@@ -1,5 +1,5 @@
 VERSION 5.00
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "msComCtl32.OCX"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "MSCOMCTL.ocx"
 Begin VB.Form Setting 
    Caption         =   "设置"
    ClientHeight    =   4920
@@ -337,32 +337,59 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Private Sub chk_Click()
-    lblLabel6.Caption = "当前设置：" & IIf(chk.Value = 0, "禁用皮肤", "启用皮肤") & "，保存设置后重启生效"
+    lblLabel6.Caption = "当前设置：" & IIf(chk.Value = 0, "禁用皮肤", "启用皮肤") & "，保存设置后立即生效"
 End Sub
 
 Private Sub cmdSave_Click()
     Const Title = "Visual settings"
-    Dim s As Long
+    Dim S As Long
     
-    s = WriteINI(Title, "Hue", Slider1.Value) + s
-    s = WriteINI(Title, "Saturation", Slider2.Value) + s
-    s = WriteINI(Title, "Brightness", Slider3.Value) + s
+    S = WriteINI(Title, "Hue", Slider1.Value) + S
+    S = WriteINI(Title, "Saturation", Slider2.Value) + S
+    S = WriteINI(Title, "Brightness", Slider3.Value) + S
     
-    s = WriteINI(Title, "Alpha", Slider4.Value) + s
-    s = WriteINI(Title, "Shadow Size", Slider5.Value) + s
-    s = WriteINI(Title, "Shadow Sharpness", Slider6.Value) + s
-    s = WriteINI(Title, "Shadow Darkness", Slider7.Value) + s
-    s = WriteINI(Title, "Shadow Color R", Slider8.Value) + s
-    s = WriteINI(Title, "Shadow Color G", Slider9.Value) + s
-    s = WriteINI(Title, "Shadow Color B", Slider10.Value) + s
+    S = WriteINI(Title, "Alpha", Slider4.Value) + S
+    S = WriteINI(Title, "Shadow Size", Slider5.Value) + S
+    S = WriteINI(Title, "Shadow Sharpness", Slider6.Value) + S
+    S = WriteINI(Title, "Shadow Darkness", Slider7.Value) + S
+    S = WriteINI(Title, "Shadow Color R", Slider8.Value) + S
+    S = WriteINI(Title, "Shadow Color G", Slider9.Value) + S
+    S = WriteINI(Title, "Shadow Color B", Slider10.Value) + S
     
-    s = WriteINI(Title, "Menu Alpha", Slider11.Value) + s
-    s = WriteINI(Title, "Skin", chk.Value) + s
-    s = WriteINI("Soft Settings", "Always on top", Check1.Value) + s
-    s = WriteINI("Soft Settings", "Show all windows", Check2.Value) + s
-    s = WriteINI("Soft Settings", "Follow Mouse", Check3.Value) + s
+    S = WriteINI(Title, "Menu Alpha", Slider11.Value) + S
+    S = WriteINI(Title, "Skin", chk.Value) + S
+    S = WriteINI("Soft Settings", "Always on top", Menu.Check1.Value) + S
+    S = WriteINI("Soft Settings", "Show all windows", Menu.Check2.Value) + S
+    S = WriteINI("Soft Settings", "Follow Mouse", Menu.Check3.Value) + S
+    S = WriteINI("Soft Settings", "Enum windows method", mWindowFilterMethod) + S
     
-    If 15 = s Then MsgBox "保存成功" Else MsgBox "存在" & 15 - s & "项保存失败"
+    Dim i As Long
+    For i = 1 To 8
+        S = S + WriteINI("Process Column", i, CInt(Menu.pColumnSelect(i).Checked))
+    Next
+    
+    If Not CBool(chk.Value) Then SkinH_Detach
+    
+    Dim TempStr       As String
+    Dim VisualTitle() As String '视觉设置
+    Dim SoftSetting() As String '软件设置
+    VisualValue(0) = Slider1.Value
+    VisualValue(1) = Slider2.Value
+    VisualValue(2) = Slider3.Value
+    VisualValue(3) = Slider4.Value
+    VisualValue(4) = Slider5.Value
+    VisualValue(5) = Slider6.Value
+    VisualValue(6) = Slider7.Value
+    VisualValue(7) = Slider8.Value
+    VisualValue(8) = Slider9.Value
+    VisualValue(9) = Slider10.Value
+    VisualValue(10) = Slider11.Value
+    VisualValue(11) = CInt(chk.Value)
+    NonLoading = True
+    Menu.SetVisual VisualValue, SoftValue
+    Menu.Refresh
+    
+    If 24 = S Then MsgBox "保存成功" Else MsgBox "存在" & 24 - S & "项保存失败"
 End Sub
 
 Private Sub cmdSetColor_Click()
@@ -378,55 +405,86 @@ Private Sub cmdSetColor_Click()
     Next i
 
     cc.lStructSize = Len(cc)
-    cc.hwndOwner = Me.hwnd
+    cc.hwndOwner = Me.hWnd
     cc.hInstance = 0
     cc.lpCustColors = StrConv(CustomColors, vbUnicode)
-    cc.flags = 0
+    cc.Flags = 0
     lReturn = ChooseColorAPI(cc)
 
-    If lReturn <> 0 Then SetTextColor Me, cc.rgbResult
+    If lReturn <> 0 Then
+        SetTextColor Me, cc.rgbResult
+        'SetTextColor Menu, cc.rgbResult
+        'SetTextColor About, cc.rgbResult
+        'SetTextColor State, cc.rgbResult
+        'SetTextColor ThreadList, cc.rgbResult
+        'SetTextColor ModuleList, cc.rgbResult
+    End If
 End Sub
 
-Private Sub Slider1_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Slider1_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     SkinH_AdjustHSV Slider1.Value, Slider2.Value, Slider3.Value
 End Sub
 
-Private Sub Slider10_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Slider10_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
 End Sub
 
-Private Sub Slider11_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Slider11_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     SkinH_SetMenuAlpha Slider11.Value
 End Sub
 
-Private Sub Slider2_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Slider2_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     SkinH_AdjustHSV Slider1.Value, Slider2.Value, Slider3.Value
 End Sub
 
-Private Sub Slider3_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Slider3_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     SkinH_AdjustHSV Slider1.Value, Slider2.Value, Slider3.Value
 End Sub
 
-Private Sub Slider4_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Slider4_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
 End Sub
 
-Private Sub Slider5_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Slider4_Scroll()
     SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
 End Sub
 
-Private Sub Slider6_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Slider5_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
 End Sub
 
-Private Sub Slider7_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Slider5_Scroll()
     SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
 End Sub
 
-Private Sub Slider8_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Slider6_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
 End Sub
 
-Private Sub Slider9_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Slider6_Scroll()
+    SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
+End Sub
+
+Private Sub Slider7_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
+End Sub
+
+Private Sub Slider7_Scroll()
+    SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
+End Sub
+
+Private Sub Slider8_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
+End Sub
+
+Private Sub Slider8_Scroll()
+    SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
+End Sub
+
+Private Sub Slider9_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
+End Sub
+
+Private Sub Slider9_Scroll()
     SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
 End Sub
