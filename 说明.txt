@@ -1,0 +1,8 @@
+Azmrk 2.6.63
+
+作者：Naylon[Email:naylon@126.com]、ForDream[QQ:175564877]、richway2[QQ:479258741]
+
+Naylon's blog : http://hi.baidu.com/naylonslain/
+ForDream's blog : http://hi.baidu.com/dazzles/
+
+简单的介绍：本程序是VB编写，位于R3，功能还很不完善，敬请期待新版本~！
