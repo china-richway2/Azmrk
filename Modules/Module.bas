@@ -33,12 +33,6 @@ Public Type MODULEINFO
     EntryPoint As Long
 End Type
 
-Public Type UNICODE_STRING
-    Length                          As Long
-    MaximumLength                   As Long
-    buffer                          As Long
-End Type
-
 Public Type LDR_MODULE 'LDR_DATA_TABLE_ENTRY
     InLoadOrderModuleList           As LIST_ENTRY
     InMemoryOrderModuleList         As LIST_ENTRY
@@ -48,24 +42,15 @@ Public Type LDR_MODULE 'LDR_DATA_TABLE_ENTRY
     SizeOfImage                     As Long
     FullDllName                     As UNICODE_STRING
     BaseDllName                     As UNICODE_STRING
-    flags                           As Long
-    LoadCount                       As Integer
+    Flags                           As Long
+    Loadcount                       As Integer
     TlsIndex                        As Integer
     HashTableEntry                  As LIST_ENTRY
     TimeDateStamp                   As Long
 End Type
 
-Public Type PEB_LDR_DATA
-    Length                          As Long
-    Initialized                     As Long
-    SsHandle                        As Long
-    InLoadOrderModuleList           As LIST_ENTRY
-    InMemoryOrderModuleList         As LIST_ENTRY
-    InInitializationOrderModuleList As LIST_ENTRY
-End Type
 
-
-Public Sub ListAllModules(ByVal pid As Long)
+Public Sub ListAllModules(ByVal PID As Long, ByVal OwnerForm As ModuleList)
     Dim MODULEINFO As MODULEENTRY32
     Dim cne As Long
     Dim msh As Long
@@ -74,28 +59,26 @@ Public Sub ListAllModules(ByVal pid As Long)
     Dim nIndex As Long
     Dim hProcess As Long
     
-    If ModuleList.ListView1.Sorted = True Then ModuleList.ListView1.Sorted = False
+    If OwnerForm.ListView1.Sorted = True Then OwnerForm.ListView1.Sorted = False
     nIndex = 1
     
-    If ModuleList.ListView1.ListItems.Count > 0 Then
-        nIndex = ModuleList.ListView1.SelectedItem.Index
+    If OwnerForm.ListView1.ListItems.count > 0 Then
+        nIndex = OwnerForm.ListView1.SelectedItem.Index
     End If
     
-    hProcess = FxNormalOpenProcess(PROCESS_QUERY_INFORMATION Or PROCESS_VM_READ, pid)
-    mPath = GetProcessName(GetProcessPath(hProcess))
-    ModuleList.Caption = "[" & (mPath) & "]中的模块"
+    hProcess = FxNormalOpenProcess(PROCESS_QUERY_INFORMATION Or PROCESS_VM_READ, PID)
     
-    ModuleList.ListView1.ListItems.Clear
+    OwnerForm.ListView1.ListItems.Clear
     
-    msh = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pid)
+    msh = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, PID)
     MODULEINFO.dwSize = LenB(MODULEINFO)
     
     cne = Module32First(msh, MODULEINFO)
     Do While cne
         mNature = "Normal"
         If MODULEINFO.ProccntUsage = 65535 Then mNature = "System"
-        ModuleList.ListView1.ListItems.Add , , MODULEINFO.szModule
-        With ModuleList.ListView1.ListItems(ModuleList.ListView1.ListItems.Count)
+        With OwnerForm.ListView1.ListItems.Add(, , MODULEINFO.szModule)
+        'With OwnerForm.ListView1.ListItems(OwnerForm.ListView1.ListItems.Count)
             .SubItems(1) = FormatHex(MODULEINFO.hModule) 'FormatHex(ModuleInfo.hModule)
             .SubItems(2) = MODULEINFO.szExePath
             .SubItems(3) = FormatHex(FxGetModuleEntryFuncAddr(hProcess, MODULEINFO.hModule))
@@ -109,15 +92,15 @@ Public Sub ListAllModules(ByVal pid As Long)
     
     DoEvents
     
-    If ModuleList.ListView1.ListItems.Count > nIndex Then
-        ModuleList.ListView1.ListItems(nIndex).Selected = True
-        ModuleList.ListView1.ListItems(nIndex).EnsureVisible
+    If OwnerForm.ListView1.ListItems.count > nIndex Then
+        OwnerForm.ListView1.ListItems(nIndex).Selected = True
+        OwnerForm.ListView1.ListItems(nIndex).EnsureVisible
     End If
     
-    ModuleList.Caption = ModuleList.Caption & " (" & ModuleList.ListView1.ListItems.Count & ")"
+    OwnerForm.Caption = "[" & OwnerForm.ListView1.ListItems(1).Text & "]中的模块 (" & OwnerForm.ListView1.ListItems.count & "个)"
 End Sub
 
-Public Sub FxEnumModulesByVirtualMemory(ByVal pid As Long)
+Public Sub FxEnumModulesByVirtualMemory(ByVal PID As Long, ByVal OwnerForm As ModuleList)
     Dim Memory As MEMORY_BASIC_INFORMATION
     Dim pFind As Long
     Dim hProcess As Long
@@ -128,20 +111,18 @@ Public Sub FxEnumModulesByVirtualMemory(ByVal pid As Long)
     Dim mPath As String
     Dim nIndex As Long
     
-    If ModuleList.ListView1.Sorted = True Then ModuleList.ListView1.Sorted = False
+    If OwnerForm.ListView1.Sorted = True Then OwnerForm.ListView1.Sorted = False
     nIndex = 1
     
-    If ModuleList.ListView1.ListItems.Count > 0 Then
-        nIndex = ModuleList.ListView1.SelectedItem.Index
+    If OwnerForm.ListView1.ListItems.count > 0 Then
+        nIndex = OwnerForm.ListView1.SelectedItem.Index
     End If
     
-    hProcess = FxNormalOpenProcess(PROCESS_QUERY_INFORMATION Or PROCESS_VM_READ, pid)
-    mPath = GetProcessName(GetProcessPath(hProcess))
-    ModuleList.Caption = "[" & (mPath) & "]中的模块"
+    hProcess = FxNormalOpenProcess(PROCESS_QUERY_INFORMATION Or PROCESS_VM_READ, PID)
     
     If hProcess = 0 Then errStr = "打开进程失败!": GoTo errors
         
-    ModuleList.ListView1.ListItems.Clear
+    OwnerForm.ListView1.ListItems.Clear
     
     Do While VirtualQueryEx(hProcess, pFind, Memory, LenB(Memory)) = LenB(Memory)
         If Memory.State = MEM_FREE Then
@@ -153,8 +134,8 @@ Public Sub FxEnumModulesByVirtualMemory(ByVal pid As Long)
             If GetModuleFileNameEx(hProcess, Memory.AllocationBase, szModPath, 256) Then
                 szModName = GetProcessName(szModPath)
                     
-                ModuleList.ListView1.ListItems.Add , , szModName
-                With ModuleList.ListView1.ListItems(ModuleList.ListView1.ListItems.Count)
+                With OwnerForm.ListView1.ListItems.Add(, , szModName)
+                'With OwnerForm.ListView1.ListItems(OwnerForm.ListView1.ListItems.Count)
                     .SubItems(1) = FormatHex(Memory.AllocationBase) 'FormatHex(ModuleInfo.hModule)
                     .SubItems(2) = szModPath
                     .SubItems(3) = FormatHex(FxGetModuleEntryFuncAddr(hProcess, Memory.AllocationBase))
@@ -177,35 +158,99 @@ Public Sub FxEnumModulesByVirtualMemory(ByVal pid As Long)
     
     DoEvents
     
-    If ModuleList.ListView1.ListItems.Count > nIndex Then
-        ModuleList.ListView1.ListItems(nIndex).Selected = True
-        ModuleList.ListView1.ListItems(nIndex).EnsureVisible
+    If OwnerForm.ListView1.ListItems.count > nIndex Then
+        OwnerForm.ListView1.ListItems(nIndex).Selected = True
+        OwnerForm.ListView1.ListItems(nIndex).EnsureVisible
     End If
     
-    ModuleList.Caption = ModuleList.Caption & " (" & ModuleList.ListView1.ListItems.Count & ")"
+    OwnerForm.Caption = "[" & OwnerForm.ListView1.ListItems(1).Text & "]中的模块 (" & OwnerForm.ListView1.ListItems.count & "个)"
     
     Exit Sub
 errors:
     MsgBox errStr, 0, "错误"
 End Sub
 
-Public Function FxUnloadDllByUnmapView(ByVal pid As Long, ByVal hModule As Long, Optional ByVal DllName As String = "") As Long
+Public Sub RdNewByReadMemory(ByVal PID As Long, ByVal OwnerForm As ModuleList)
+    Dim hProcess As Long
+    Dim hAppHandle As Long
+    Dim szModPath As String
+    Dim szModName As String
+    Dim mPath As String
+    Dim etStart As Long
+    Dim lPtr As Long
+    Dim etCur As LDR_MODULE
+    Dim Basic As PROCESS_BASIC_INFORMATION
+    Dim Peb As PEB_LDR_DATA
+    Dim nIndex As Long
+    Dim errStr As String
+    nIndex = 1
+    
+    If OwnerForm.ListView1.Sorted = True Then OwnerForm.ListView1.Sorted = False
+    
+    If OwnerForm.ListView1.ListItems.count > 0 Then
+        nIndex = OwnerForm.ListView1.SelectedItem.Index
+    End If
+    
+    hProcess = FxNormalOpenProcess(PROCESS_QUERY_INFORMATION Or PROCESS_VM_READ, PID)
+    
+    If hProcess = 0 Then errStr = "打开进程失败!": GoTo errors
+        
+    OwnerForm.ListView1.ListItems.Clear
+    '获取PEB指针
+    If Not NT_SUCCESS(ZwQueryInformationProcess(hProcess, ProcessBasicInformation, Basic, Len(Basic), 0)) Then
+        errStr = "获取PEB指针失败！"
+        GoTo errors
+    End If
+    '获取PEB_LDR_DATA结构指针
+    If Not NT_SUCCESS(ZwReadVirtualMemory(hProcess, ByVal Basic.PebBaseAddress + 12, etStart, 4, 0)) Then
+        errStr = "读取内存失败！"
+        GoTo errors
+    End If
+    '获取PEB_LDR_DATA
+    Debug.Print ZwReadVirtualMemory(hProcess, ByVal etStart, Peb, Len(Peb), 0)
+    '获取第一项
+    etStart = Peb.InLoadOrderModuleList.Blink
+    Debug.Print ZwReadVirtualMemory(hProcess, ByVal etStart, etCur, Len(etCur), 0)
+    
+    Do
+        szModPath = Space(etCur.FullDllName.Length \ 2)
+        ZwReadVirtualMemory hProcess, ByVal etCur.FullDllName.Buffer, ByVal StrPtr(szModPath), LenB(szModPath), 0
+        szModName = Space(etCur.BaseDllName.Length \ 2)
+        ZwReadVirtualMemory hProcess, ByVal etCur.BaseDllName.Buffer, ByVal StrPtr(szModName), LenB(szModName), 0
+        With OwnerForm.ListView1.ListItems.Add(, , szModName)
+            .SubItems(1) = FormatHex(etCur.BaseAddress)
+            .SubItems(2) = szModPath
+            .SubItems(3) = FormatHex(etCur.EntryPoint)
+            .SubItems(4) = etCur.SizeOfImage
+        End With
+        ZwReadVirtualMemory hProcess, ByVal etCur.InLoadOrderModuleList.Blink, etCur, Len(etCur), 0
+    Loop Until etCur.InLoadOrderModuleList.Blink = etStart
+    
+    OwnerForm.Caption = "[" & OwnerForm.ListView1.ListItems(1).Text & "]中的模块 (" & OwnerForm.ListView1.ListItems.count & "个)"
+    ZwClose hProcess
+    Exit Sub
+errors:
+    MsgBox errStr, vbCritical
+    ZwClose hProcess
+End Sub
+
+Public Function FxUnloadDllByUnmapView(ByVal PID As Long, ByVal hModule As Long, Optional ByVal DllName As String = "") As Long
     Dim hProcess As Long
     Dim errStr As String
     Dim temp As String * 260
 
-    hProcess = FxNormalOpenProcess(PROCESS_ALL_ACCESS, pid)
+    hProcess = FxNormalOpenProcess(PROCESS_ALL_ACCESS, PID)
     If hProcess = 0 Then errStr = "打开进程失败!": GoTo errors
    
     If hModule = 0 Then
         hModule = GetModuleHandle(DllName)
-        If hModule = 0 Then errStr = "获取模块句柄失败!": GoTo errors
+        If hModule = 0 Then ZwClose hProcess: errStr = "获取模块句柄失败!": GoTo errors
     End If
     
     ZwUnmapViewOfSection hProcess, hModule
     
     If GetModuleFileNameEx(hProcess, hModule, temp, 260) Then   '如果仍能获取到模块名则说明该模块仍存在
-        If hModule = 0 Then errStr = "卸载模块失败!": GoTo errors
+        If hModule = 0 Then ZwClose hProcess: errStr = "卸载模块失败!": GoTo errors
     Else
         FxUnloadDllByUnmapView = 1
     End If
@@ -218,7 +263,7 @@ errors:
     FxUnloadDllByUnmapView = 0
 End Function
 
-Public Function FxRemoteProcessInsertDll(ByVal pid As Long, ByVal DllPath As String) As Long
+Public Function FxRemoteProcessInsertDll(ByVal PID As Long, ByVal DllPath As String, ByVal IsLoadLibrary As Boolean) As Long
     Dim lpThreadAttributes As SECURITY_ATTRIBUTES
     Dim hProcess As Long
     Dim hThread As Long
@@ -227,11 +272,11 @@ Public Function FxRemoteProcessInsertDll(ByVal pid As Long, ByVal DllPath As Str
     Dim DllFileSize As Long
     Dim rReturn As Long
     Dim fAddr As Long
-    Dim Cid As CLIENT_ID
+    Dim cid As CLIENT_ID
     Dim errNum As Long
     Dim errStr As String
     
-    hProcess = FxNormalOpenProcess(PROCESS_ALL_ACCESS, pid)
+    hProcess = FxNormalOpenProcess(PROCESS_ALL_ACCESS, PID)
     '所需权限PROCESS_QUERY_INFORMATION Or PROCESS_VM_OPERATION Or PROCESS_VM_READ Or PROCESS_VM_WRITE
     If hProcess = 0 Then errStr = "打开进程失败!": GoTo errors
 
@@ -245,7 +290,11 @@ Public Function FxRemoteProcessInsertDll(ByVal pid As Long, ByVal DllPath As Str
     hModule = GetModuleHandle("kernel32.dll")
     If hModule = 0 Then errStr = "获取模块地址失败!": GoTo errors
     
-    fAddr = GetProcAddress(hModule, "LoadLibraryA")
+    If IsLoadLibrary Then
+        fAddr = GetProcAddress(hModule, "LoadLibraryA")
+    Else
+        fAddr = GetProcAddress(hModule, "GetModuleHandleA")
+    End If
     If fAddr = 0 Then errStr = "获取函数地址失败!": GoTo errors
 
     hThread = CreateRemoteThread(hProcess, lpThreadAttributes, 0, fAddr, DllBuffer, 0, ByVal 0&)
@@ -272,7 +321,7 @@ errors:
     FxRemoteProcessInsertDll = 0
 End Function
 
-Public Function FxRemoteProcessFreeDll(ByVal pid As Long, ByVal hModule As Long, Optional ByVal DllName As String = "") As Long
+Public Function FxRemoteProcessFreeDll(ByVal PID As Long, ByVal hModule As Long, Optional ByVal DllName As String = "") As Long
     Dim lpThreadAttributes As SECURITY_ATTRIBUTES
     Dim hProcess As Long
     Dim hThread As Long
@@ -281,16 +330,16 @@ Public Function FxRemoteProcessFreeDll(ByVal pid As Long, ByVal hModule As Long,
     Dim i As Long
     Dim uSucceed As Long
     Dim uMax As Long
-    Dim Cid As CLIENT_ID
+    Dim cid As CLIENT_ID
     Dim errNum As Long
     Dim errStr As String
     
     If hModule = 0 Then
-        hModule = FxGetRemoteModuleName(pid, DllName)
+        hModule = FxGetRemoteModuleName(PID, DllName)
         If hModule = 0 Then errStr = "获取模块句柄失败!": GoTo errors
     End If
 
-    hProcess = FxNormalOpenProcess(PROCESS_ALL_ACCESS, pid)
+    hProcess = FxNormalOpenProcess(PROCESS_ALL_ACCESS, PID)
     If hProcess = 0 Then errStr = "打开进程失败!": GoTo errors
     
     hFunction = GetModuleHandle("kernel32.dll")
@@ -303,9 +352,9 @@ Public Function FxRemoteProcessFreeDll(ByVal pid As Long, ByVal hModule As Long,
         uSucceed = 0
         GetExitCodeThread hThread, uSucceed
         uMax = uMax + 1
-    Loop While uSucceed And uMax < 200
+    Loop While (uSucceed = 1) And uMax < 256
     
-    If uSucceed = 1 Then errStr = "卸载模块失败!": GoTo errors  '如果函数仍返回1(成功)，则说明模块没有被卸载
+    If uSucceed = 1 Or uSucceed = 259 Then errStr = "卸载模块失败!": GoTo errors  '如果函数仍返回1(成功)，则说明模块没有被卸载
     
     '<——输出调试信息——
     errNum = GetLastError
@@ -323,7 +372,7 @@ errors:
     FxRemoteProcessFreeDll = 0
 End Function
 
-Public Function FxGetRemoteModuleName(ByVal pid As Long, ByVal ModuleName As String) As Long
+Public Function FxGetRemoteModuleName(ByVal PID As Long, ByVal ModuleName As String) As Long
     Dim lpThreadAttributes As SECURITY_ATTRIBUTES
     Dim hThread As Long
     Dim hProcess As Long
@@ -336,7 +385,7 @@ Public Function FxGetRemoteModuleName(ByVal pid As Long, ByVal ModuleName As Str
     Dim hModule As Long
     Dim errStr As String
     
-    hProcess = FxNormalOpenProcess(PROCESS_ALL_ACCESS, pid)
+    hProcess = FxNormalOpenProcess(PROCESS_ALL_ACCESS, PID)
     '所需权限PROCESS_QUERY_INFORMATION Or PROCESS_VM_OPERATION Or PROCESS_VM_READ Or PROCESS_VM_WRITE
     If hProcess = 0 Then errStr = "打开进程失败!": GoTo errors
     
@@ -385,12 +434,14 @@ Public Function FxGetModuleEntryFuncAddr(ByVal hProcess As Long, ByVal hModule A
     FxGetModuleEntryFuncAddr = mi.EntryPoint
 End Function
 
-Public Sub MNNew(ByVal pid As Long)
-    With ModuleList.ListView1
+Public Sub MNNew(ByVal PID As Long, ByVal OwnerForm As ModuleList)
+    With OwnerForm.ListView1
         If .Tag = 0 Then
-            Call ListAllModules(pid)
+            Call ListAllModules(PID, OwnerForm)
         ElseIf .Tag = 1 Then
-            Call FxEnumModulesByVirtualMemory(pid)
+            Call FxEnumModulesByVirtualMemory(PID, OwnerForm)
+        ElseIf .Tag = 2 Then
+            Call RdNewByReadMemory(PID, OwnerForm)
         End If
     End With
 End Sub

@@ -1,5 +1,5 @@
 VERSION 5.00
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "msComCtl32.OCX"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "MSCOMCTL.ocx"
 Begin VB.Form ThreadList 
    BorderStyle     =   1  'Fixed Single
    Caption         =   "进程线程"
@@ -60,9 +60,6 @@ Begin VB.Form ThreadList
       Begin VB.Menu tResume 
          Caption         =   "恢复线程"
       End
-      Begin VB.Menu t02 
-         Caption         =   "-"
-      End
       Begin VB.Menu tMenuTerminate 
          Caption         =   "结束线程"
          Begin VB.Menu tTerminate 
@@ -74,6 +71,12 @@ Begin VB.Form ThreadList
          Begin VB.Menu tTerminateByDestroyThreadContext 
             Caption         =   "Developing..."
          End
+      End
+      Begin VB.Menu t02 
+         Caption         =   "-"
+      End
+      Begin VB.Menu tShowSubWindows 
+         Caption         =   "显示窗口"
       End
    End
 End
@@ -103,7 +106,7 @@ Private Sub Form_Load()
     'ListViewColor Me, ListView2
     'SetTextColor Me
     
-    ListAllThreads (mPid)
+    ListAllThreads mPid, Me
 End Sub
 
 Private Sub ListView1_ColumnClick(ByVal ColumnHeader As MSComctlLib.ColumnHeader)
@@ -137,6 +140,17 @@ Private Sub tResume_Click()
     Call tNew_Click
 End Sub
 
+Private Sub tShowSubWindows_Click()
+    If ListView1.SelectedItem Is Nothing Then Exit Sub
+    mWindowFilterMethod = (mWindowFilterMethod And (Not 12)) Or MethodListByTID
+    mWindowFilterArg = ListView1.SelectedItem.Text
+    SetTab = True
+    Menu.lLabels_Click 0
+    SetTab = False
+    Call CNNew
+    Menu.SetFocus
+End Sub
+
 Private Sub tSuspend_Click()
     Dim hThread As Long
     
@@ -156,7 +170,7 @@ End Sub
 Private Sub tTerminate_Click()
     Dim hThread As Long
 
-    hThread = FxNormalOpenThread(THREAD_TERMINATE, CLng(ListView1.SelectedItem.SubItems(1)))
+    hThread = FxNormalOpenThread(THREAD_TERMINATE, CLng(ListView1.SelectedItem.Text))
     
     If hThread = 0 Then
         MsgBox "拒绝访问!", 0, "失败"
@@ -174,14 +188,14 @@ End Sub
 Private Sub tTerminateByDestroyThreadContext_Click()
     Dim hThread As Long
     
-    hThread = FxNormalOpenThread(THREAD_ALL_ACCESS, CLng(ListView1.SelectedItem.SubItems(1)))
+    hThread = FxNormalOpenThread(THREAD_ALL_ACCESS, CLng(ListView1.SelectedItem.Text))
     FxDestroyThreadContext hThread
     
     Call tNew_Click
 End Sub
 
 Private Sub tTerminateByThreadMessage_Click()
-    PostThreadMessage CLng(ListView1.SelectedItem.SubItems(1)), WM_STOP, 0, 0
+    PostThreadMessage CLng(Replace(ListView1.SelectedItem.SubItems(1), "0x", "&H")), WM_STOP, 0, 0
     
     Call tNew_Click
 End Sub

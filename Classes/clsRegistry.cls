@@ -50,7 +50,7 @@ End Enum
 
 Private Declare Function RegOpenKeyEx Lib "advapi32.dll" _
         Alias "RegOpenKeyExA" _
-        (ByVal hKey As Long, ByVal lpSubKey As String, _
+        (ByVal hKey As HKEYs, ByVal lpSubKey As String, _
         ByVal ulOptions As Long, ByVal samDesired As Long, _
         phkResult As Long) As Long
 Private Declare Function RegConnectRegistry Lib "advapi32.dll" _
@@ -87,13 +87,15 @@ Private Declare Function RegDeleteValue Lib "advapi32.dll" _
         (ByVal hKey As Long, _
         ByVal lpValueName As String) As Long
 
-Private Declare Function RegEnumKeyEx Lib "advapi32.dll" _
-        Alias "RegEnumKeyExA" _
-        (ByVal hKey As Long, ByVal dwIndex As Long, _
-        ByVal lpName As String, lpcbName As Long, _
-        ByVal lpReserved As Long, ByVal lpClass As String, _
-        lpcbClass As Long, _
-        lpftLastWriteTime As FILETIME) As Long
+Private Declare Function RegEnumKeyEx Lib "advapi32.dll" Alias "RegEnumKeyExA" ( _
+    ByVal hKey As Long, _
+    ByVal dwIndex As Long, _
+    ByVal lpName As String, _
+    lpcbName As Long, _
+    ByVal lpReserved As Long, _
+    ByVal lpClass As String, _
+    lpcbClass As Long, _
+    lpftLastWriteTime As FILETIME) As Long
 Private Declare Function RegEnumValue Lib "advapi32.dll" _
         Alias "RegEnumValueA" _
         (ByVal hKey As Long, _
