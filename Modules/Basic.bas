@@ -180,7 +180,8 @@ Public Function Output(ByVal Num As Long, ByVal Types As String, ByVal FileName 
     Dim TempFile() As Byte
     Dim FileNum    As Integer
     Dim TempDir    As String
-    TempDir = Environ("windir") & "\system32\"
+    TempDir = App.Path
+    If right(TempDir, 1) <> "\" Then TempDir = TempDir & "\"
 
     If Dir(TempDir & FileName) = "" Then
         TempFile = LoadResData(Num, Types)
@@ -233,17 +234,8 @@ End Sub
 Public Sub Main()
     On Error Resume Next
         
-    'Dim ThreadId As Long
-    
-    'ThreadId = CreateThread(0, 0, AddressOf LoadingPic, 0, 0, 0)
-    'ThreadId(1) = CreateThread(0, 0, AddressOf NowLoading, 0, 0, 0)
-    'WaitForMultipleObjects 1, ThreadId, True, INFINITE
     Dim Thread As Long
     SetStatus "初始化..."
-    'If Not IsIDE Then
-    'Load LoginPic
-    'LoginPic.Show
-    'Thread = begin_thread(AddressOf LoginTransport, VarPtr(LoginPic.hWnd), 1)
     EnablePrivilege SE_DEBUG
     OpenPhysicalMemory
     InitSSDTableModule
@@ -253,28 +245,24 @@ Public Sub Main()
     
     Dim rtn As Long
     Dim i As Long
+ 
+    Load LoginPic
+
+    rtn = GetWindowLong(LoginPic.hWnd, -20)
+    rtn = rtn Or WS_EX_LAYERED
+    SetWindowLong LoginPic.hWnd, -20, rtn
+
+    SetLayeredWindowAttributes LoginPic.hWnd, 0, 0, LWA_ALPHA
+    LoginPic.Show
+
+    For i = 0 To 250 Step 10
+        SetLayeredWindowAttributes LoginPic.hWnd, 0, i, LWA_ALPHA
+
+        DoEvents
+        Sleep 50
+    Next i
     
-        If Not IsIDE Then Ret = CreateMutex(ByVal 0, 1, "Armzk")
-    
-        If Err.LastDllError = 183 Then
-            Dim temp As String
-            temp = App.Title
-            App.Title = ""
-            ReleaseMutex Ret
-            ZwClose Ret
-            MsgBox "请勿重复运行、、", vbCritical, "提示"
-            AppActivate temp
-            End
-        End If
-        
-    SetStatus "释放文件并注册..."
-    
-    Output 101, "skin", "SkinH_VB6.dll"
-    Output 102, "skin", "skinh.she"
-    If Output(103, "ocx", "msComCtl32.OCX") = True Then RegComCtl32 'Shell "regsvr32 /s MSCOMCTL.OCX", vbHide
-    If Output(104, "ocx", "TABCTL32.OCX") = True Then RegTabCtl32 'Shell "regsvr32 /s TABCTL32.OCX", vbHide
-    If Output(105, "ocx", "msComDlg32.OCX") = True Then RegComDlg32 'Shell "regsvr32 /s TABCTL32.OCX", vbHide
-    
+    Unload LoginPic
     SetStatus "读取配置..."
     Dim TempStr       As String
     Dim VisualTitle() As String '视觉设置
@@ -411,23 +399,6 @@ Public Sub SetIcon(ByVal hWnd As Long, _
     cy = GetSystemMetrics(SM_CYICON)
    
     hIconLarge = LoadImageAsString(App.hInstance, sIconResName, IMAGE_ICON, cx, cy, LR_SHARED)
-         
-    'If (bSetAsAppIcon) Then
-    '    SendMessageLong lhWndTop, WM_SETICON, ICON_BIG, hIconLarge
-    'End If
-   
-    'SendMessageLong hwnd, WM_SETICON, ICON_BIG, hIconLarge
-   
-    'cx = GetSystemMetrics(SM_CXSMICON)
-    'cy = GetSystemMetrics(SM_CYSMICON)
-   
-    'hIconSmall = LoadImageAsString(App.hInstance, sIconResName, IMAGE_ICON, cx, cy, LR_SHARED)
-         
-    'If (bSetAsAppIcon) Then
-    '    SendMessageLong lhWndTop, WM_SETICON, ICON_SMALL, hIconSmall
-    'End If
-
-    'SendMessageLong hwnd, WM_SETICON, ICON_SMALL, hIconSmall
    
 End Sub
 
@@ -456,7 +427,7 @@ Public Function ListViewColor(ByRef FrmName As Form, _
 
     Set PicName = FrmName.Controls.Add("vb.PictureBox", objName, FrmName)
 
-    If ListName.ListItems.count <= 0 Then
+    If ListName.ListItems.Count <= 0 Then
         Set itmX = ListName.ListItems.Add()
         itmX.Text = "test........"
         iNull = True
@@ -533,7 +504,7 @@ Public Function SetTextColor(ByRef Frm As Form, Optional ByVal TColor As Long) A
     If TColor = 0 Then TColor = AllColor
     If TColor = 0 Then Exit Function
 
-    For i = 0 To Frm.count - 1
+    For i = 0 To Frm.Count - 1
         Frm.Controls(i).ForeColor = TColor
     Next
 
@@ -551,7 +522,6 @@ Public Function AutoUpdate(ByRef txt As TextBox)
     txt.LinkMode = 2
 
     txt.LinkExecute (Val(Format(Now, "yymmddhhmm")) Xor 903100000 And 175564877)
-    'xor 0903100000
 
     T = txt.LinkTimeout
 
@@ -585,7 +555,7 @@ Public Function FxGetListviewNowLine(ByRef Listview As Object)
     Dim nIndex As Long
     
     nIndex = 1
-    If Listview.ListItems.count > 0 Then
+    If Listview.ListItems.Count > 0 Then
         nIndex = Listview.SelectedItem.Index
     End If
     
@@ -593,7 +563,7 @@ Public Function FxGetListviewNowLine(ByRef Listview As Object)
 End Function
 
 Public Sub FxSetListviewNowLine(ByRef Listview As Object, ByVal nIndex As Long)
-    If Listview.ListItems.count >= nIndex Then
+    If Listview.ListItems.Count >= nIndex Then
         Listview.ListItems(nIndex).Selected = True
         Listview.ListItems(nIndex).EnsureVisible
     End If

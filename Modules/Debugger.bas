@@ -5,11 +5,11 @@ Public Declare Function ZwCreateDebugObject Lib "NTDLL.DLL" (ByRef pDebugObjectH
 Public Declare Function ZwWaitForDebugEvent Lib "NTDLL.DLL" (ByVal hDebug As Long, ByVal Flags As Long, lpTimeout As INT64, lpEvent As Any) As Long
 'Public Declare Function DebugActiveProcess Lib "kernel32" (ByVal dwProcessId As Long) As Long
 'Public Declare Function ContinueDebugEvent Lib "kernel32" (ByVal dwProcessId As Long, ByVal dwThreadId As Long, ByVal dwContinueStatus As Long) As Long
-Public Declare Function ZwDebugContinue Lib "NTDLL.DLL" (ByVal hDebug As Long, Cid As Any, ByVal ContinueStatus As Long) As Long
+Public Declare Function ZwDebugContinue Lib "NTDLL.DLL" (ByVal hDebug As Long, cid As Any, ByVal ContinueStatus As Long) As Long
 Public Declare Function DebugActiveProcessStop Lib "kernel32" (ByVal dwProcessId As Long) As Long
 Public Declare Function DbgUiConvertStateChangeStructure Lib "NTDLL.DLL" (lpDebugEvent As Any, lpNtEvent As Any) As Long
 Public Declare Function DbgUiIssueRemoteBreakin Lib "NTDLL.DLL" (ByVal hProcess As Long) As Long
-Public Declare Sub UnionToType Lib "NTDLL.DLL" Alias "RtlMoveMemory" (Dest As Any, Src As Any, ByVal Length As Long)
+Public Declare Sub UnionToType Lib "NTDLL.DLL" Alias "RtlMoveMemory" (dest As Any, Src As Any, ByVal Length As Long)
 Public Declare Function ZwGetContextThread Lib "NTDLL.DLL" (ByVal hThread As Long, ByRef pContext As Any) As Long
 Public Declare Function ZwSetContextThread Lib "NTDLL.DLL" (ByVal hThread As Long, ByRef pContext As Any) As Long
 Public Declare Function ZwRemoveProcessDebug Lib "NTDLL.DLL" (ByVal hDProcess As Long, ByVal hDebug As Long) As Long
@@ -199,43 +199,8 @@ Public Type FLOATING_SAVE_AREA
     ErrorSelector As Long
     DataOffset As Long
     DataSelector As Long
-    RegisterArea(SIZE_OF_80387_REGISTERS - 1) As Byte
+    RegisterArea(80 - 1) As Byte
     Cr0NpxState As Long
-End Type
-
-
-Public Type CONTEXT
-    ContextFlags As Long
-
-    Dr0 As Long
-    Dr1 As Long
-    Dr2 As Long
-    Dr3 As Long
-    Dr6 As Long
-    Dr7 As Long
-
-    FloatSave As FLOATING_SAVE_AREA
-
-    SegGs As Long
-    SegFs As Long
-    SegEs As Long
-    SegDs As Long
-
-    Edi As Long
-    Esi As Long
-    EBX As Long
-    EDX As Long
-    ECX As Long
-    EAX As Long
-
-    Ebp As Long
-    EIP As Long
-    SegCs As Long              ' MUST BE SANITIZED
-    EFlags As EFLFlags         ' MUST BE SANITIZED
-    Esp As Long
-    SegSs As Long
-
-    ExtendedRegisters(MAXIMUM_SUPPORTED_EXTENSION) As Byte
 End Type
 
 Public Type FLGSTRUCT

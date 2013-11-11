@@ -298,7 +298,6 @@ Public Function FxRemoteProcessInsertDll(ByVal PID As Long, ByVal DllPath As Str
     If fAddr = 0 Then errStr = "获取函数地址失败!": GoTo errors
 
     hThread = CreateRemoteThread(hProcess, lpThreadAttributes, 0, fAddr, DllBuffer, 0, ByVal 0&)
-    'hThread = ChCreateRemoteThread(hProcess, fAddr, DllBuffer, Cid)
     If hThread = 0 Then errStr = "插入Dll失败!": GoTo errors
     
     WaitForSingleObject hThread, INFINITE
@@ -347,8 +346,6 @@ Public Function FxRemoteProcessFreeDll(ByVal PID As Long, ByVal hModule As Long,
     
     Do
         hThread = CreateRemoteThread(hProcess, lpThreadAttributes, 0, hFunction, hModule, 0, 0)
-        'hThread = ChCreateRemoteThread(hProcess, hFunction, hModule, Cid)
-        'WaitForSingleObject hThread, INFINITE
         uSucceed = 0
         GetExitCodeThread hThread, uSucceed
         uMax = uMax + 1

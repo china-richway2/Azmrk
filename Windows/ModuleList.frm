@@ -126,10 +126,6 @@ Private Sub Form_Load()
     ListView1.Tag = 0
     
     mPid = nsItem
-    
-    'ListViewColor Me, ListView1
-    'SetTextColor Me
-    'SetIcon ModuleList.hwnd, "IDR_MAINFRAME", True
     Dialog1.Filter = "动态链接库文件(*.dll,*.ocx)|*.dll;*.ocx"
     
     Call MNNew(mPid, Me)
@@ -139,7 +135,7 @@ Private Sub ListView1_ColumnClick(ByVal ColumnHeader As MSComctlLib.ColumnHeader
     LVAutoOrder ListView1, ColumnHeader
 End Sub
 
-Private Sub ListView1_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub ListView1_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     If Button = 2 Then
         PopupMenu mMenu
     End If
@@ -170,8 +166,6 @@ Private Sub mLoadDll_Click()
 End Sub
 
 Private Sub mLocationFile_Click()
-    'MsgBox ListView1.SelectedItem.SubItems(2)
-    'Shell "explorer.exe /select," & (ListView1.SelectedItem.SubItems(2)), vbNormalFocus
     FindFiles ListView1.SelectedItem.SubItems(2)
 End Sub
 
@@ -200,7 +194,6 @@ Private Sub mUnloadDllByRemoteThread_Click()
 End Sub
 
 Private Sub mUnloadDllByUnmapView_Click()
-    'FxUnloadDllByUnmapView mPid, 0, ListView1.SelectedItem.Text
     FxUnloadDllByUnmapView mPid, UnFormatHex(ListView1.SelectedItem.SubItems(1)), 0
     Call MNNew(mPid, Me)
 End Sub

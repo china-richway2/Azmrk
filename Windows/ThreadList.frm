@@ -101,11 +101,6 @@ Private Sub Form_Load()
 
     mPid = nsItem
     
-    'ListViewColor Me, ListView1
-    'SetIcon ThreadList.hwnd, "IDR_MAINFRAME", True
-    'ListViewColor Me, ListView2
-    'SetTextColor Me
-    
     ListAllThreads mPid, Me
 End Sub
 
@@ -113,7 +108,7 @@ Private Sub ListView1_ColumnClick(ByVal ColumnHeader As MSComctlLib.ColumnHeader
     LVAutoOrder ListView1, ColumnHeader
 End Sub
 
-Private Sub ListView1_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub ListView1_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     If Button = 2 Then
         PopupMenu tMenu
     End If

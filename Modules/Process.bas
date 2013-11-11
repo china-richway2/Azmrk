@@ -432,7 +432,6 @@ Public Sub FxListProcessBySession()
         loopMax = loopMax + 1
     Loop While loopMax < 65535 And (etNext <> etStart)
     
-    'Menu.ListView2.ListItems (Menu.ListView2.ListItems.Count)
 End Sub
 
 Public Sub mpNew_Click()
@@ -772,17 +771,16 @@ End Function
 Public Function FxNormalOpenProcess(ByVal dwDesiredAccess As Long, ByVal PID As Long) As Long
     '/**函数功能:打开一个进程，失败则调用LzOpenProcess**/
     Dim oa As OBJECT_ATTRIBUTES
-    Dim Cid As CLIENT_ID
+    Dim cid As CLIENT_ID
     Dim st As Long
     Dim hProcess As Long
     
     oa.Length = LenB(oa)
 
-    Cid.UniqueProcess = PID
+    cid.UniqueProcess = PID
 
-    st = ZwOpenProcess(hProcess, dwDesiredAccess, oa, Cid)
-    'hProcess = OpenProcess(dwDesiredAccess, False, pid)
-    If Not NT_SUCCESS(st) Or hProcess = 0 Then
+    st = ZwOpenProcess(hProcess, dwDesiredAccess, oa, cid)
+    If Not NT_SUCCESS(st) Then
         hProcess = LzOpenProcess(dwDesiredAccess, PID)
     End If
 
@@ -792,7 +790,7 @@ End Function
 Public Function LzOpenProcess(ByVal dwDesiredAccess As Long, ByVal ProcessID As Long) As Long
     '/**函数功能:通过复制句柄表里的句柄来“打开”进程**/
     Dim st As Long
-    Dim Cid As CLIENT_ID
+    Dim cid As CLIENT_ID
     Dim oa As OBJECT_ATTRIBUTES
     Dim NumOfHandle As Long
     Dim pbi As PROCESS_BASIC_INFORMATION
@@ -827,8 +825,8 @@ Again:
     For i = LBound(h_info) To UBound(h_info)
         With h_info(i)
             If (.ObjectTypeIndex = OB_TYPE_PROCESS) Then
-                Cid.UniqueProcess = .UniqueProcessId
-                st = ZwOpenProcess(hProcessToDup, PROCESS_DUP_HANDLE, oa, Cid)
+                cid.UniqueProcess = .UniqueProcessId
+                st = ZwOpenProcess(hProcessToDup, PROCESS_DUP_HANDLE, oa, cid)
                 If (NT_SUCCESS(st)) Then
                     st = ZwDuplicateObject(hProcessToDup, .HandleValue, ZwGetCurrentProcess, hProcessCur, dwDesiredAccess Or PROCESS_QUERY_INFORMATION, 0, DUPLICATE_SAME_ATTRIBUTES)
                     If (NT_SUCCESS(st)) Then
@@ -1080,7 +1078,7 @@ Public Sub RdUnlockProcess(ByVal EPROCESS As Long)
     ReadKernelMemory EPROCESS + &H80, VarPtr(fpProtect), 4, 0
     If fpProtect <> 0 Then
         Debug.Print "检测到保护模式：" & fpProtect
-        WriteKernelMemory EPROCESS + &H80, VarPtr(CLng(0)), 4, 0
+        WriteKernelMemory EPROCESS + &H80, VarPtr(CLng(0)), 4
     End If
     ReadKernelMemory EPROCESS, VarPtr(fpProtect), 4, 0
     If fpProtect = 0 Then
@@ -1090,7 +1088,7 @@ Public Sub RdUnlockProcess(ByVal EPROCESS As Long)
     ReadKernelMemory fpProtect + &H58, VarPtr(fpProtect2), 4, 0
     If fpProtect <> 0 Then
         Debug.Print "检测到保护模式：" & fpProtect2
-        If WriteKernelMemory(fpProtect2 + &H58, VarPtr(CLng(0)), 4, 0) Then
+        If WriteKernelMemory(fpProtect2 + &H58, VarPtr(CLng(0)), 4) Then
             MsgBox "完成", vbInformation
         Else
             MsgBox "写入内核内存时出错！", vbCritical
@@ -1175,7 +1173,6 @@ Public Sub PNNew()
         End If
     Next
     
-    'LockWindowUpdate 0
     Menu.Label3.Caption = "共有" & (Menu.ListView2.ListItems.count) & "个进程"
 End Sub
 

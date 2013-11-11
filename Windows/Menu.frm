@@ -1528,18 +1528,18 @@ Public Sub lLabels_Click(Index As Integer)
     End If
 End Sub
 
-Private Sub LVModules_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub LVModules_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
     If Button = 2 Then PopupMenu dMenu
 End Sub
 
-Private Sub LVSSDT_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub LVSSDT_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     If Button = 2 Then
         If LVSSDT.SelectedItem Is Nothing Then Exit Sub
         PopupMenu sSSDT
     End If
 End Sub
 
-Private Sub lvwData_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub lvwData_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     If tvwKeys.SelectedItem Is Nothing Then Exit Sub
     If Button = 2 Then
         If lvwData.SelectedItem Is Nothing Then
@@ -1690,17 +1690,6 @@ Private Sub Form_Load()
         .Add , , "现在地址", 1200
         .Add , , "所在模块", 3600
     End With
-        
-    
-    'Dim strComputer, strNameSpace, strClass As String
-    'Dim objSWbemLocator, objSWbemServices As Object
-    
-'    strComputer = "."           '计算机名，.为本机
-'    strNameSpace = "root\cimv2" '指定命名空间为root\cimv2
-'    strClass = "Win32_Service"  '指定类为Win32_Service
-'    Set objSWbemLocator = CreateObject("WbemScripting.SWbemLocator")    '建立1个WBEM对象的引用指针
-'    Set objSWbemServices = objSWbemLocator.ConnectServer(strComputer, strNameSpace)  '连接到指定计算机、命名空间的WMI，返回一个对 SWbemServices 对象的引用
-    'RefreshList '刷新服务列表
     
 
     FirstFocus = True
@@ -1712,21 +1701,15 @@ Private Sub Form_Load()
     
     If Check1.Value = 1 Then SetWindowPos Me.hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
 
-    'ListViewColor Me, ListView1
-    'ListViewColor Me, ListView2
-    'ListViewColor Me, LVServer
     ListView1.Sorted = True
     SetTextColor Me
-    'Label2.DragIcon = 15
     Me.Caption = "Azmrk WindowsXP Edition v" & App.Major & "." & App.Minor & "." & App.Revision
     
-    'SetWindowPos Me.hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
     '2010-02-24  界面布置
     'Label1.top = Text1.top + 50
     '注册表相关
     On Error GoTo errTrap ' just in case ;)
     InitRegTree
-    'cSplit.Initialise picSplitter, Me  '分隔条
     
     If SoftValue(0) = "1" Then Check1.Value = 1: Call Check1_Click
     If SoftValue(1) = "1" Then Check2.Value = 1: Call Check2_Click
@@ -1796,7 +1779,7 @@ Private Sub Label2_Click()
     'http://sighttp.qq.com/cgi-bin/check?sigkey=10e2f1de4f3638083759f062e8997cd18e83e614ff27ed6511e0665cc7ab711b
 End Sub
 
-Private Sub Label2_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Label2_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
     Me.MousePointer = 99
     Me.MouseIcon = VB.LoadResPicture(101, vbResCursor)
 End Sub
@@ -1805,7 +1788,7 @@ Private Sub Label4_Click()
     ShellExecute Me.hWnd, "open", "http://hi.baidu.com/naylonslain", vbNullString, vbNullString, SW_SHOW
 End Sub
 
-Private Sub Label4_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Label4_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
     Me.MousePointer = 99
     Me.MouseIcon = VB.LoadResPicture(101, vbResCursor)
 End Sub
@@ -1842,7 +1825,7 @@ Private Sub ListView1_DblClick()
     End With
 End Sub
 
-Public Sub ListView1_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Public Sub ListView1_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     Dim SubText As String
 
     With ListView1
@@ -1907,7 +1890,7 @@ Private Sub ListView2_ColumnClick(ByVal ColumnHeader As MSComctlLib.ColumnHeader
     LVAutoOrder ListView2, ColumnHeader
 End Sub
 
-Private Sub ListView2_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub ListView2_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
     If Button = 2 Then
         '设置菜单状态
@@ -1942,7 +1925,7 @@ Private Sub ListView3_ColumnClick(ByVal ColumnHeader As MSComctlLib.ColumnHeader
     LVAutoOrder LVServer, ColumnHeader
 End Sub
 
-Private Sub ListView3_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub ListView3_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     If Button = 2 Then
         PopupMenu dMenu
     End If
@@ -1950,8 +1933,8 @@ End Sub
 
 Private Sub LVServer_MouseUp(Button As Integer, _
                              Shift As Integer, _
-                             x As Single, _
-                             y As Single)
+                             X As Single, _
+                             Y As Single)
 
     If Button = 2 Then
 
@@ -2086,7 +2069,6 @@ Private Sub nChildNewEx(ByVal Index As Long)
 End Sub
 
 Private Sub nClose_Click()
-    'EnableWindow CLng(ListView1.SelectedItem.SubItems(2)), 0
     PostMessage CLng(ListView1.SelectedItem.SubItems(2)), WM_CLOSE, 0, ByVal 0
     PostMessage CLng(ListView1.SelectedItem.SubItems(2)), WM_DESTROY, 0, ByVal 0
     
@@ -2145,10 +2127,10 @@ Private Sub nFxNewByTID_Click()
 End Sub
 
 Private Sub nGetTextBox_Click()
-    Dim x As New FormTextBox
-    x.nWnd = CLng(ListView1.SelectedItem.SubItems(2))
-    x.CatchText
-    x.Show
+    Dim X As New FormTextBox
+    X.nWnd = CLng(ListView1.SelectedItem.SubItems(2))
+    X.CatchText
+    X.Show
 End Sub
 
 Private Sub nHide_Click()
@@ -2433,7 +2415,6 @@ Private Sub pListWindows_Click()
     lLabels_Click 0
     SetTab = False
     ListView1.Tag = 0
-    'Text1.Text = "输入标题或类名或句柄查找"
     Call CNNew
 End Sub
 
@@ -2570,8 +2551,6 @@ Private Sub pTerminateProcessByRemoteThread_Click()
     hFunction = GetModuleHandle("kernel32.dll")
     hFunction = GetProcAddress(hFunction, "ExitProcess")
     
-    'hThread = Err_CreateRemoteThread(hProcess, lpThreadAttributes, 0, hFunction&, 0, 0, 0)
-    '以上引起一个内存错误
     hThread = CreateRemoteThread(hProcess, lpThreadAttributes, 0, hFunction, 0, 0, 0)
     If hThread = 0 Then
         MsgBox "创建线程失败!", 0, "失败"
@@ -2727,10 +2706,6 @@ Private Sub sSelectExe_Click()
     End If
 End Sub
 
-Private Sub SSTab1_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
-    Me.MousePointer = 0
-End Sub
-
 Private Sub Text1_Change()
     If SetText Then Exit Sub
     If mWindowFilterMethod And MethodSearch Then
@@ -2858,13 +2833,6 @@ Private Sub SetServerBootType(ByVal SubText As String, BootType As Long)
     Dim Reg As clsRegistry
     
     Set Reg = New clsRegistry
-    'SubText = LVServer.SelectedItem
-
-    '    If Not Reg.SetValue(eHKEY_LOCAL_MACHINE, "System\currentcontrolset\services\" & SubText, "Start", BootType) Then
-    '        MsgBox "尝试修改失败、", vbInformation, "提示"
-    '    Else
-    '        sNew_Click
-    '    End If
     Reg.DeleteValue eHKEY_LOCAL_MACHINE, "System\currentcontrolset\services\" & SubText, "Start"
 
     If Not Reg.SetValue(eHKEY_LOCAL_MACHINE, "System\currentcontrolset\services\" & SubText, "Start", BootType) Then
@@ -2876,7 +2844,7 @@ End Sub
 
 Private Sub tvwKeys_Expand(ByVal Node As MSComctlLib.Node)
     Dim S As String
-    Dim y As Node
+    Dim Y As Node
     S = Node.FullPath
     If Node.Tag <> 1 Then
         tvwKeys.Nodes.Remove Node.Child.Index
@@ -2886,7 +2854,7 @@ Private Sub tvwKeys_Expand(ByVal Node As MSComctlLib.Node)
     Call EnumValue(Node)
 End Sub
 
-Private Sub tvwKeys_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub tvwKeys_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     If Button <> 2 Then Exit Sub
     rDelete.Enabled = (UBound(Split(tvwKeys.SelectedItem.Key, "\")) > 1)
     rRename.Enabled = rDelete.Enabled
@@ -3055,27 +3023,27 @@ Private Sub cmdSetColor_Click()
     End If
 End Sub
 
-Private Sub Slider1_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Slider1_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     SkinH_AdjustHSV Slider1.Value, Slider2.Value, Slider3.Value
 End Sub
 
-Private Sub Slider10_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Slider10_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
 End Sub
 
-Private Sub Slider11_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Slider11_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     SkinH_SetMenuAlpha Slider11.Value
 End Sub
 
-Private Sub Slider2_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Slider2_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     SkinH_AdjustHSV Slider1.Value, Slider2.Value, Slider3.Value
 End Sub
 
-Private Sub Slider3_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Slider3_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     SkinH_AdjustHSV Slider1.Value, Slider2.Value, Slider3.Value
 End Sub
 
-Private Sub Slider4_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Slider4_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
 End Sub
 
@@ -3083,7 +3051,7 @@ Private Sub Slider4_Scroll()
     SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
 End Sub
 
-Private Sub Slider5_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Slider5_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
 End Sub
 
@@ -3091,7 +3059,7 @@ Private Sub Slider5_Scroll()
     SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
 End Sub
 
-Private Sub Slider6_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Slider6_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
 End Sub
 
@@ -3099,7 +3067,7 @@ Private Sub Slider6_Scroll()
     SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
 End Sub
 
-Private Sub Slider7_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Slider7_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
 End Sub
 
@@ -3107,7 +3075,7 @@ Private Sub Slider7_Scroll()
     SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
 End Sub
 
-Private Sub Slider8_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Slider8_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
 End Sub
 
@@ -3115,7 +3083,7 @@ Private Sub Slider8_Scroll()
     SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
 End Sub
 
-Private Sub Slider9_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub Slider9_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     SkinH_AdjustAero Slider4.Value, Slider7.Value, Slider6.Value, Slider5.Value, 0, 0, Slider8.Value, Slider9.Value, Slider10.Value
 End Sub
 

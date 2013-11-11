@@ -127,8 +127,6 @@ Public Function FxGetProcessMemoryInformation(ByVal hProcess As Long) As String
     Dim pmc As PROCESS_MEMORY_COUNTERS
         
     GetProcessMemoryInfo hProcess, pmc, LenB(pmc)
-    'pmc.WorkingSetSize = ByteToMillionByte(pmc.WorkingSetSize)
-    'pmc.PeakWorkingSetSize = ByteToMillionByte(pmc.PeakWorkingSetSize)
     FxGetProcessMemoryInformation = ByteToKMG(pmc.WorkingSetSize) & " - " & ByteToKMG(pmc.PeakWorkingSetSize)
 End Function
 
