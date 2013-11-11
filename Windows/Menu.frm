@@ -1766,6 +1766,8 @@ Private Sub Form_Unload(Cancel As Integer)
     For i = 0 To UBound(Processes)
         ZwClose Processes(i).Handle
     Next
+    ShutdownSSDT
+    
     'End
     'If IsIDE Then
         End
