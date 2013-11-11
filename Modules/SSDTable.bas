@@ -41,7 +41,7 @@ Public Sub InitSSDTableModule()
     ReDim m(i - 1)
     CopyMemory VarPtr(m(0)), VarPtr(A(4)), Len(m(0)) * i
     Erase A
-    pKernel = LoadLibrary(StrConv(m(0).ImageName, vbUnicode))
+    pKernel = LoadLibrary("C:" & StrConv(m(0).ImageName, vbUnicode))
     Open "C:\WINDOWS\system32\win32k.sys" For Binary As #1
     ReDim nWin32K(LOF(1) - 1)
     Get #1, , nWin32K
@@ -150,4 +150,8 @@ Public Sub RecoverShadowSSDTAll()
     For i = 0 To UBound(ShadowSSDTData)
         RecoverShadowSSDTSingle i
     Next
+End Sub
+
+Public Sub ShutdownSSDT()
+    FreeLibrary pKernel
 End Sub
