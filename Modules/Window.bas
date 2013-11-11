@@ -10,7 +10,7 @@ Public Declare Function GetClassName Lib "user32" Alias "GetClassNameA" (ByVal h
 Public Declare Function RealGetWindowClass Lib "user32" Alias "GetClassNameA" (ByVal hWnd As Long, ByVal lpClassName As String, ByVal nMaxCount As Long) As Long
 Public Declare Function GetParent Lib "user32" (ByVal hWnd As Long) As Long
 Public Declare Function GetDesktopWindow Lib "user32" () As Long
-Public Declare Function SetWindowPos Lib "user32" (ByVal hWnd As Long, ByVal hWndInsertAfter As Long, ByVal x As Long, ByVal y As Long, ByVal cx As Long, ByVal cy As Long, ByVal wFlags As Long) As Long
+Public Declare Function SetWindowPos Lib "user32" (ByVal hWnd As Long, ByVal hWndInsertAfter As Long, ByVal X As Long, ByVal Y As Long, ByVal cx As Long, ByVal cy As Long, ByVal wFlags As Long) As Long
 Public Declare Function SetParent Lib "user32" (ByVal hWndChild As Long, ByVal hWndNewParent As Long) As Long
 Public Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
 Public Declare Function SetWindowText Lib "user32" Alias "SetWindowTextA" (ByVal hWnd As Long, ByVal lpString As String) As Long
@@ -277,8 +277,8 @@ Public Function EnumWindowsProc(ByVal hWnd As Long, ByVal lParam As Long) As Boo
         
     If WindowFilter Then
         With Menu.ListView1.ListItems
-        .Add , , left(nWindow.Text, InStr(1, nWindow.Text, vbNullChar))
-        .Item(.Count).SubItems(1) = left(nWindow.Class, InStr(1, nWindow.Class, vbNullChar))
+        .Add , , Left(nWindow.Text, InStr(1, nWindow.Text, vbNullChar))
+        .Item(.Count).SubItems(1) = Left(nWindow.Class, InStr(1, nWindow.Class, vbNullChar))
         .Item(.Count).SubItems(2) = nWindow.Handle
         .Item(.Count).SubItems(3) = nWindow.Parent
         .Item(.Count).SubItems(4) = nWindow.ProcessID
@@ -322,8 +322,6 @@ Public Sub mnFxtNew(mfind As String)
     Else
         FindStr = ""
     End If
-    'FxEnumWindowsByThread 1, 600000
-    'Call FEWBT_MultiThreading
        
     FxSetListviewNowLine Menu.ListView1, nIndex
 End Sub
@@ -534,8 +532,6 @@ Public Sub CNNew()
         
     Menu.ListView1.ListItems.Clear
     
-    'LockWindowUpdate Menu.ListView1.hwnd
-    
     If Menu.ListView1.Tag = 0 Then
         Call EnumWindowsByMethod(Menu.Label1.Tag)
     Else
@@ -554,13 +550,11 @@ Public Sub CNNew()
 
     FxSetListviewNowLine Menu.ListView1, nIndex
     Menu.Label1.Caption = "共有：" & Menu.ListView1.ListItems.Count & "个" & IIf(Menu.ListView1.Tag > 0, "子", "活动") & "窗体"
-    
-    'LockWindowUpdate 0
 End Sub
 
 Public Function GetText(ByVal hWnd As Long) As String
     Dim sStr As String, j As Long
     sStr = Space(1024)
     j = SendMessage(hWnd, WM_GETTEXT, Len(sStr), ByVal sStr)
-    GetText = left(sStr, j)
+    GetText = Left(sStr, j)
 End Function

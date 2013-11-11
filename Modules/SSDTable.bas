@@ -124,7 +124,7 @@ Public Sub RecoverSSDTSingle(ByVal nIndex As Long)
     KSDT = GetProcAddress(pKernel, "KeServiceDescriptorTable") - pKernel + pBaseKernel
     'SSDT表的获取
     ReadKernelMemory KSDT, VarPtr(KSDT), 4, 0 '获取SSDT表地址
-    WriteKernelMemory KSDT + nIndex * 4, VarPtr(SSDTData(nIndex).dwRealAddress), 4, 0
+    WriteKernelMemory KSDT + nIndex * 4, VarPtr(SSDTData(nIndex).dwRealAddress), 4
 End Sub
 
 Public Sub RecoverSSDTAll()
@@ -135,13 +135,14 @@ Public Sub RecoverSSDTAll()
 End Sub
 
 Public Sub RecoverShadowSSDTSingle(ByVal nIndex As Long)
+    Dim KSDT As Long
     '获取KeAddSystemServiceTable
     KSDT = GetProcAddress(pKernel, "KeAddSystemServiceTable") - pKernel + pBaseKernel
     '从汇编代码中获取KeSystemServiceTableShadow
     ReadKernelMemory KSDT + 28, VarPtr(KSDT), 4, 0
     'SSDT表的获取
     ReadKernelMemory KSDT, VarPtr(KSDT), 4, 0 '获取SSDT表地址
-    WriteKernelMemory KSDT + nIndex * 4, VarPtr(ShadowSSDTData(nIndex).dwRealAddress), 4, 0
+    WriteKernelMemory KSDT + nIndex * 4, VarPtr(ShadowSSDTData(nIndex).dwRealAddress), 4
 End Sub
 
 Public Sub RecoverShadowSSDTAll()

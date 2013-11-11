@@ -179,18 +179,18 @@ Public Function oHKEY_CURRENT_USER() As String
     oHKEY_CURRENT_USER = oHKEY_USERS & "\" & GetUserName
 End Function
 Public Function OpenRegKey(ByVal szPath As String, ByVal Access As Long, ByVal NotQuiet As Boolean) As Long
-    Dim s As String
+    Dim S As String
     Dim root As String
     Dim subkey As String
     Dim rootkey As String
     Dim ComputerName As String
     ComputerName = left(szPath, InStr(szPath, "\") - 1)
-    s = Mid(szPath, InStr(szPath, "\") + 1)
-    If InStr(s, "\") > 0 Then
-        root = left(s, InStr(s, "\") - 1)
-        subkey = Mid(s, InStr(s, "\") + 1)
+    S = Mid(szPath, InStr(szPath, "\") + 1)
+    If InStr(S, "\") > 0 Then
+        root = left(S, InStr(S, "\") - 1)
+        subkey = Mid(S, InStr(S, "\") + 1)
     Else
-        root = s
+        root = S
     End If
     Select Case root
     Case "HKEY_LOCAL_MACHINE"
@@ -424,7 +424,7 @@ Public Sub EnumValue(ByVal hNode As Node, Optional ByVal NotQuiet As Boolean = F
 End Sub
 
 Public Function DeleteKey(ByVal szPath As String, Optional ByVal NotQuiet As Boolean = False) As Boolean
-    Dim s As String
+    Dim S As String
     Dim root As String
     Dim subkey As String
     Dim rootkey As HKEYs
@@ -509,38 +509,37 @@ Public Function CreateKey(ByVal szPath As String, ByVal szKeyName As String, Opt
         rootkey = eHKEY_USERS
     End Select
     
-    Dim s As String
-    Dim subkey As String
-    Dim ComputerName As String
+    Dim S As String
     ComputerName = left(szPath, InStr(szPath, "\") - 1)
-    s = Mid(szPath, InStr(szPath, "\") + 1)
-    If InStr(s, "\") > 0 Then
-        root = left(s, InStr(s, "\") - 1)
-        subkey = Mid(s, InStr(s, "\") + 1)
+    S = Mid(szPath, InStr(szPath, "\") + 1)
+    If InStr(S, "\") > 0 Then
+        root = left(S, InStr(S, "\") - 1)
+        subkey = Mid(S, InStr(S, "\") + 1)
     Else
-        root = s
+        root = S
     End If
     Select Case root
     Case "HKEY_LOCAL_MACHINE"
-        s = oHKEY_LOCAL_MACHINE
+        S = oHKEY_LOCAL_MACHINE
     Case "HKEY_CLASSES_ROOT"
-        s = oHKEY_CLASSES_ROOT
+        S = oHKEY_CLASSES_ROOT
     Case "HKEY_CURRENT_USER"
-        s = oHKEY_CURRENT_USER
+        S = oHKEY_CURRENT_USER
     Case "HKEY_CURRENT_CONFIG"
-        s = oHKEY_CURRENT_CONFIG
+        S = oHKEY_CURRENT_CONFIG
     Case "HKEY_USERS"
-        s = oHKEY_USERS
+        S = oHKEY_USERS
     End Select
     Dim oa As OBJECT_ATTRIBUTES, us As UNICODE_STRING
+    Dim Key As Long
     If subkey <> "" Then
-        s = s & "\" & subkey
+        S = S & "\" & subkey
     End If
     RtlInitUnicodeString us, StrPtr(szPath)
     oa.Length = Len(oa)
     oa.ObjectName = VarPtr(us)
     oa.Attributes = OBJ_CASE_INSENSITIVE
-    Call ZwCreateKey(Key, Access, oa, 0, ByVal 0, 0, ByVal 0)
+    Call ZwCreateKey(Key, KEY_ALL_ACCESS, oa, 0, ByVal 0, 0, ByVal 0)
     
     If Key = 0 Then
         If NotQuiet Then MsgBox "创建子项时出错！", vbCritical
@@ -579,7 +578,7 @@ Public Function CreateValue(ByVal szPath As String, ByVal ValueName As String, B
     Case "HKEY_USERS"
         rootkey = eHKEY_USERS
     End Select
-    Dim Key As Long, result As Long, s As Long, d As Long, sAttr As SECURITY_ATTRIBUTES
+    Dim Key As Long, result As Long, S As Long, d As Long, sAttr As SECURITY_ATTRIBUTES
     If ComputerName <> "我的电脑" Then
         result = RegConnectRegistry(ComputerName, rootkey, Key)
         If result = ERROR_SUCCESS Then
@@ -611,7 +610,7 @@ Public Function CreateValue(ByVal szPath As String, ByVal ValueName As String, B
 End Function
 
 Public Function DeleteValue(ByVal szPath As String, ByVal ValueName As String, ByVal NotQuiet As Boolean) As Boolean
-    Dim Key As Long, result As Long, s As Long, d As Long, sAttr As SECURITY_ATTRIBUTES
+    Dim Key As Long, result As Long, S As Long, d As Long, sAttr As SECURITY_ATTRIBUTES
     Key = OpenRegKey(szPath, KEY_ALL_ACCESS, NotQuiet)
     result = RegDeleteValue(Key, ValueName)
     If result <> ERROR_SUCCESS Then
@@ -651,7 +650,7 @@ Public Function SetReg(ByVal szPath As String, ByVal ValueName As String, ByVal 
     Case "HKEY_USERS"
         rootkey = eHKEY_USERS
     End Select
-    Dim Key As Long, result As Long, s As Long, d As Long, sAttr As SECURITY_ATTRIBUTES
+    Dim Key As Long, result As Long, S As Long, d As Long, sAttr As SECURITY_ATTRIBUTES
     If ComputerName <> "我的电脑" Then
         result = RegConnectRegistry(ComputerName, rootkey, Key)
         If result = ERROR_SUCCESS Then
@@ -676,15 +675,15 @@ Public Function SetReg(ByVal szPath As String, ByVal ValueName As String, ByVal 
     If IsFirst Then
         Classs = REG_SZ
     Else
-        result = RegQueryValueEx(Key, ValueName, 0, s, CLng(0), 4)
+        result = RegQueryValueEx(Key, ValueName, 0, S, CLng(0), 4)
         If result <> 0 And result <> 234 Then
             If NotQuiet Then MsgBox "获取数据类型时出错！", vbCritical
             Exit Function
         End If
     End If
-    If s = REG_DWORD Or s = REG_DWORD_BIG_ENDIAN Then
+    If S = REG_DWORD Or S = REG_DWORD_BIG_ENDIAN Then
         With DGEditDWord
-            .Init Key, ValueName, szClassName, s
+            .Init Key, ValueName, szClassName, S
             .Show vbModal, Menu
             RegCloseKey Key
         End With

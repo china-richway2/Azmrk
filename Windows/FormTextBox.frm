@@ -20,7 +20,6 @@ Begin VB.Form FormTextBox
       MultiLine       =   -1  'True
       ScrollBars      =   3  'Both
       TabIndex        =   0
-      Text            =   "FormTextBox.frx":0000
       Top             =   0
       Width           =   4695
    End

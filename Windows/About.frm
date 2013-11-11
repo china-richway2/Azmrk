@@ -106,3 +106,7 @@ Option Explicit
 Private Sub cmdOK_Click()
   Unload Me
 End Sub
+
+Private Sub Form_Load()
+
+End Sub

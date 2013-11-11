@@ -41,14 +41,5 @@ Attribute VB_Exposed = False
 Public i As Long
 Private Sub Form_Load()
     App.TaskVisible = False
-    'SkinH_Attach  'skin
-    'SkinH_SetAero 1 'skin
-'SetIcon Me.hwnd, "IDR_MAINFRAME", True 'icon
-'    With Image1
-'        .top = 0
-'        .left = 0
-'        .Height = LoginPic.Height
-'        .Width = LoginPic.Width
-'    End With
 
 End Sub

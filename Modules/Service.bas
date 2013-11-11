@@ -56,22 +56,6 @@ End Type
 
 
 Public Sub msNew_Click()
-    '    Dim i As Long
-    '
-    '    ListView3.ListItems.Clear
-    '    i = 1
-    '    Set objSWbemObjectSet = objSWbemServices.ExecQuery("SELECT * FROM " & strClass)  '通过WQL查询，返回指定类的所有
-    '
-    '    For Each objSWbemObject In objSWbemObjectSet
-    '        ListView3.ListItems.Add , , objSWbemObject.DisplayName '将服务名称添加到ListView1第一列
-    '        ListView3.ListItems(i).SubItems(1) = objSWbemObject.State '将服务的状态添加到ListView1第二列
-    '        ListView3.ListItems(i).SubItems(2) = objSWbemObject.StartMode '将服务的启动方式添加到ListView1第三列
-    '        ListView3.ListItems(i).SubItems(3) = objSWbemObject.PathName '将服务程序的路径添加到ListView1第四列
-    '        ListView3.ListItems(i).SubItems(4) = objSWbemObject.StartName '将服务的登录身份添加到ListView1第五列
-    '        ListView3.ListItems(i).SubItems(5) = objSWbemObject.ProcessID '将服务的进程ID添加到ListView1第六列
-    '        i = i + 1
-    '    Next
-    '-----------------------------2010.02.21 08:28-----------------------
     Dim Registry As clsRegistry
     Set Registry = New clsRegistry
     Dim r_initial As String
@@ -133,23 +117,11 @@ Public Sub msNew_Click()
             End With
             ZwClose hKey2
         End If
-        
-        'LVServer.ListItems(sIndex).Selected = True
-        'LVServer.ListItems(sIndex).EnsureVisible
-        'lblServiceCount = "当前 " & index_count & " 个服务"
-        'If index_count > 15 Then Exit Sub
 Try:
     Loop
     
     ZwClose hKey
     Menu.Label5.Caption = "共有" & (num_count) & "个服务"
-    
-    
-    'lblServiceCount = index_count & " services"
-    'r_initial = Registry.GetValue(eHKEY_LOCAL_MACHINE, "System\currentcontrolset\services\beep", "Group")
-
-    'Set ListView1.SelectedItem = ListView1.ListItems(1)
-    'ListView1_ItemClick ListView1.ListItems(1)
 End Sub
 
 Public Sub GetServerInfo(ByVal ServerNames As String, ByVal CCount As Long, ByVal hKey As Long)
@@ -211,7 +183,7 @@ Public Function SetupStartPath(ByVal Path As String) As String
         SetupStartPath = Path
         Exit Function
     End If
-    temp = left$(Path, InStr(Path, "\") - 1)
+    temp = Left$(Path, InStr(Path, "\") - 1)
 
     If InStr(temp, "%") > 0 Then
         If LCase$(temp) = "%systemroot%" Or InStr(temp, ":") <= 0 Then
