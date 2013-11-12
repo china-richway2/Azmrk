@@ -147,8 +147,8 @@ Public Type ShellEexeCuteInfo
 End Type
 
 Public Type POINTAPI
-    x As Long
-    y As Long
+    X As Long
+    Y As Long
 End Type
 
 Public Type RECT
@@ -237,7 +237,6 @@ Public Sub Main()
     Dim Thread As Long
     SetStatus "≥ı ºªØ..."
     EnablePrivilege SE_DEBUG
-    OpenPhysicalMemory
     InitSSDTableModule
     SetPriorityClass GetCurrentProcess, HIGH_PRIORITY_CLASS
     'viewProcessWindows = False
@@ -427,7 +426,7 @@ Public Function ListViewColor(ByRef FrmName As Form, _
 
     Set PicName = FrmName.Controls.Add("vb.PictureBox", objName, FrmName)
 
-    If ListName.ListItems.Count <= 0 Then
+    If ListName.ListItems.count <= 0 Then
         Set itmX = ListName.ListItems.Add()
         itmX.Text = "test........"
         iNull = True
@@ -504,7 +503,7 @@ Public Function SetTextColor(ByRef Frm As Form, Optional ByVal TColor As Long) A
     If TColor = 0 Then TColor = AllColor
     If TColor = 0 Then Exit Function
 
-    For i = 0 To Frm.Count - 1
+    For i = 0 To Frm.count - 1
         Frm.Controls(i).ForeColor = TColor
     Next
 
@@ -555,7 +554,7 @@ Public Function FxGetListviewNowLine(ByRef Listview As Object)
     Dim nIndex As Long
     
     nIndex = 1
-    If Listview.ListItems.Count > 0 Then
+    If Listview.ListItems.count > 0 Then
         nIndex = Listview.SelectedItem.Index
     End If
     
@@ -563,7 +562,7 @@ Public Function FxGetListviewNowLine(ByRef Listview As Object)
 End Function
 
 Public Sub FxSetListviewNowLine(ByRef Listview As Object, ByVal nIndex As Long)
-    If Listview.ListItems.Count >= nIndex Then
+    If Listview.ListItems.count >= nIndex Then
         Listview.ListItems(nIndex).Selected = True
         Listview.ListItems(nIndex).EnsureVisible
     End If
@@ -571,7 +570,7 @@ End Sub
 
 Public Function UnicodeStringToString(ByRef us As UNICODE_STRING) As String
     UnicodeStringToString = Space(us.Length \ 2)
-    CopyMemory StrPtr(UnicodeStringToString), us.Buffer, us.Length
+    CopyMemory StrPtr(UnicodeStringToString), us.buffer, us.Length
 End Function
 
 Public Function StringFromPtr(ByVal Ptr As Long) As String

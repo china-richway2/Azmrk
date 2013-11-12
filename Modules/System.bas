@@ -123,7 +123,7 @@ End Type
 Public Type UNICODE_STRING
     Length                          As Integer
     MaximumLength                   As Integer
-    Buffer                          As Long
+    buffer                          As Long
 End Type
 
 Public Type INT64
@@ -307,94 +307,28 @@ Public Type SECURITY_ATTRIBUTES
     lpSecurityDescriptor As Long
     bInheritHandle As Long
 End Type
-
-Public Sub ReadPhysicalMemory(ByVal addr As Long, ByVal Buffer As Long, ByVal Size As Long)
-    Dim tg As tagPhysStruct, pMemory As Long
-    Dim NewAddr As Long, NewSize As Long
-    NewAddr = addr And &HFFFFF000
-    NewSize = ((addr - NewAddr) + Size + &HFFF) And &HFFFFF000
-    tg.pvPhysAddress = NewAddr
-    tg.dwPhysMemSizeInBytes = NewSize
-    pMemory = MapPhysToLin(tg)
-    If pMemory = 0 Then Exit Sub
-    CopyMemory Buffer, pMemory - NewAddr + addr, Size
-    UnmapPhysicalMemory tg
-End Sub
-
-Public Sub WritePhysicalMemory(ByVal addr As Long, ByVal Buffer As Long, ByVal Size As Long)
-    Dim tg As tagPhysStruct, pMemory As Long
-    Dim NewAddr As Long, NewSize As Long
-    NewAddr = addr And &HFFFFF000
-    NewSize = ((addr - NewAddr) + Size + &HFFF) And &HFFFFF000
-    tg.pvPhysAddress = NewAddr
-    tg.dwPhysMemSizeInBytes = NewSize
-    pMemory = MapPhysToLin(tg)
-    If pMemory = 0 Then Exit Sub
-    CopyMemory pMemory - NewAddr + addr, Buffer, Size
-    UnmapPhysicalMemory tg
-End Sub
-
-Public Function LinearToPhys(ByVal Linear As Long) As Long
-    Dim lDirectoty As Long, VerInfo As OSVERSIONINFO
-    VerInfo.dwOSVersionInfoSize = Len(VerInfo)
-    If (GetVersionEx(VerInfo)) <> 0 Then
-        If VerInfo.dwPlatformId = 2 Then
-            If VerInfo.dwMajorVersion = 5 Then
-                Select Case VerInfo.dwMinorVersion
-                Case 0
-                    lDirectoty = &H30000
-                Case 1
-                    lDirectoty = &H39000
-                End Select
-            End If
-        End If
-    End If
-    If lDirectoty = 0 Then
-        MsgBox "不支持的系统，不能读取内核内存！", vbCritical
-        Error 10000
-    End If
-    Dim mPGDE(&H3FF) As Long
-    ReadPhysicalMemory lDirectoty, VarPtr(mPGDE(0)), &H1000 '获取PGDE
+Public Function ReadKernelMemory(ByVal Addr As Long, ByVal buffer As Long, ByVal size As Long, ReturnLength As Long) As Boolean
+    Dim QueryBuff As MEMORY_CHUNKS
     
-    Dim PGDE As Long, PTE As Long, lTemp As Long
-    If Linear < 0 Then
-        lTemp = ((Linear And &H7FFFFFFF) \ &H400000) + &H200
-    Else
-        lTemp = Linear \ &H400000
-    End If
-    lTemp = mPGDE(lTemp) '获取PTE
+    With QueryBuff
+        .address = Addr
+        .pData = buffer
+        .Length = size
+    End With
     
-    If (lTemp And 1) <> 0 Then
-        ReadPhysicalMemory (lTemp And &HFFFFF000) + ((Linear And &H3FF000) \ &H1000) * 4, VarPtr(lTemp), 4 '获取PDE
-        LinearToPhys = (lTemp And &HFFFFF000) + (Linear And &HFFF) '算出物理地址
-    End If
+    ZwSystemDebugControl 8, VarPtr(QueryBuff), Len(QueryBuff), 0, 0, ReturnLength
+    ReadKernelMemory = ReturnLength = size
 End Function
 
-Public Function ReadKernelMemory(ByVal addr As Long, ByVal Buffer As Long, ByVal Size As Long, ReturnLength As Long) As Boolean
-   Dim pPhysical As Long
-   pPhysical = LinearToPhys(addr)
-   ReadPhysicalMemory pPhysical, Buffer, Size
-End Function
-
-Public Function WriteKernelMemory(ByVal addr As Long, ByVal Buffer As Long, ByVal Size As Long) As Boolean
-   Dim pPhysical As Long
-   pPhysical = LinearToPhys(addr)
-   WritePhysicalMemory pPhysical, Buffer, Size
-End Function
-
-Public Function OpenPhysicalMemory() As Long
-    OpenPhysicalMemory = InitializeWinIo
-End Function
-
-Public Function ClosePhysicalMemory() As Long
-    ClosePhysicalMemory = ShutdownWinIo
-End Function
-
-Public Function GetData(ByVal addr As Long) As Long
-    ReadPhysicalMemory LinearToPhys(addr), VarPtr(GetData), 4
-    'GetData = GetPhysLong(LinearToPhys(addr), GetData)
-End Function
-
-Public Function SetData(ByVal addr As Long, ByVal Value As Long) As Long
-    SetData = SetPhysLong(LinearToPhys(addr), Value)
+Public Function WriteKernelMemory(ByVal Addr As Long, ByVal buffer As Long, ByVal size As Long, ReturnLength As Long) As Boolean
+    Dim QueryBuff As MEMORY_CHUNKS
+    
+    With QueryBuff
+        .address = Addr
+        .pData = buffer
+        .Length = size
+    End With
+    
+    ZwSystemDebugControl 9, VarPtr(QueryBuff), Len(QueryBuff), 0, 0, ReturnLength
+    WriteKernelMemory = ReturnLength = size
 End Function
