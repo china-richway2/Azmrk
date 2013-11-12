@@ -2,7 +2,6 @@ Azmrk 2.6.63
 
 作者：Naylon[Email:naylon@126.com]、ForDream[QQ:175564877]、richway2[EQ:richway2@163.com 479258741]
 
-Naylon's blog : http://hi.baidu.com/naylonslain/
-ForDream's blog : http://hi.baidu.com/dazzles/
+Naylon's blog : http://naylon.0ginr.com/
 
 简单的介绍：本程序是VB编写，位于R3，大多数所用到的API尽可能使用内核层的，使用NTDLL。
