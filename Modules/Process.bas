@@ -359,9 +359,15 @@ End Sub
 
 Public Sub ProcessFillByEProcess(ByVal nItem As Long)
     With Processes(nItem)
-        ReadKernelMemory .EPROCESS + &H62, VarPtr(.Basic.BasePriority), 1, 0
-        ReadKernelMemory .EPROCESS + &H1B8, VarPtr(.VmCounters), 48, 0
-        .ImageName = FxGetProcessName(.EPROCESS)
+        If .Basic.BasePriority = 0 Then
+            ReadKernelMemory .EPROCESS + &H62, VarPtr(.Basic.BasePriority), 1, 0
+        End If
+        If .VmCounters.VirtualSize = 0 Then
+            ReadKernelMemory .EPROCESS + &H1B8, VarPtr(.VmCounters), 48, 0
+        End If
+        If .ImageName = "" Then
+            .ImageName = FxGetProcessName(.EPROCESS)
+        End If
     End With
 End Sub
 
@@ -771,15 +777,15 @@ End Function
 Public Function FxNormalOpenProcess(ByVal dwDesiredAccess As Long, ByVal PID As Long) As Long
     '/**函数功能:打开一个进程，失败则调用LzOpenProcess**/
     Dim oa As OBJECT_ATTRIBUTES
-    Dim cid As CLIENT_ID
+    Dim Cid As CLIENT_ID
     Dim st As Long
     Dim hProcess As Long
     
     oa.Length = LenB(oa)
 
-    cid.UniqueProcess = PID
+    Cid.UniqueProcess = PID
 
-    st = ZwOpenProcess(hProcess, dwDesiredAccess, oa, cid)
+    st = ZwOpenProcess(hProcess, dwDesiredAccess, oa, Cid)
     If Not NT_SUCCESS(st) Then
         hProcess = LzOpenProcess(dwDesiredAccess, PID)
     End If
@@ -790,7 +796,7 @@ End Function
 Public Function LzOpenProcess(ByVal dwDesiredAccess As Long, ByVal ProcessID As Long) As Long
     '/**函数功能:通过复制句柄表里的句柄来“打开”进程**/
     Dim st As Long
-    Dim cid As CLIENT_ID
+    Dim Cid As CLIENT_ID
     Dim oa As OBJECT_ATTRIBUTES
     Dim NumOfHandle As Long
     Dim pbi As PROCESS_BASIC_INFORMATION
@@ -825,8 +831,8 @@ Again:
     For i = LBound(h_info) To UBound(h_info)
         With h_info(i)
             If (.ObjectTypeIndex = OB_TYPE_PROCESS) Then
-                cid.UniqueProcess = .UniqueProcessId
-                st = ZwOpenProcess(hProcessToDup, PROCESS_DUP_HANDLE, oa, cid)
+                Cid.UniqueProcess = .UniqueProcessId
+                st = ZwOpenProcess(hProcessToDup, PROCESS_DUP_HANDLE, oa, Cid)
                 If (NT_SUCCESS(st)) Then
                     st = ZwDuplicateObject(hProcessToDup, .HandleValue, ZwGetCurrentProcess, hProcessCur, dwDesiredAccess Or PROCESS_QUERY_INFORMATION, 0, DUPLICATE_SAME_ATTRIBUTES)
                     If (NT_SUCCESS(st)) Then
