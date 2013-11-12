@@ -472,25 +472,25 @@ Public Sub mpNew_Click()
 End Sub
 
 Public Sub ListProcessByQuery()
-    Dim Buffer() As Byte
+    Dim buffer() As Byte
     Dim nLength As Long
 S:
     ZwQuerySystemInformation SystemProcessInformation, 0, 0, nLength
     If nLength = 0 Then Exit Sub
-    ReDim Buffer(1 To nLength)
-    If Not NT_SUCCESS(ZwQuerySystemInformation(SystemProcessInformation, VarPtr(Buffer(1)), nLength, nLength)) Then
+    ReDim buffer(1 To nLength)
+    If Not NT_SUCCESS(ZwQuerySystemInformation(SystemProcessInformation, VarPtr(buffer(1)), nLength, nLength)) Then
         GoTo S
     End If
     Dim inf As SYSTEM_PROCESSORS, E As Long, n As Long, StrNameBuffer() As Byte
     E = 1 '
     Do
-        CopyMemory VarPtr(inf), VarPtr(Buffer(E)), Len(inf)
+        CopyMemory VarPtr(inf), VarPtr(buffer(E)), Len(inf)
         E = E + inf.NextEntryDelta
         n = NewProcess(inf.ProcessID)
         With Processes(n)
             If inf.ProcessName.Length <> 0 Then
                 ReDim StrNameBuffer(inf.ProcessName.Length - 1)
-                CopyMemory VarPtr(StrNameBuffer(0)), inf.ProcessName.Buffer, inf.ProcessName.Length
+                CopyMemory VarPtr(StrNameBuffer(0)), inf.ProcessName.buffer, inf.ProcessName.Length
                 .ImageName = StrNameBuffer
             End If
             .ThreadCount = inf.ThreadCount
