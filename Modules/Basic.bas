@@ -231,8 +231,29 @@ Public Sub SetStatus(ByRef lpText As String)
     LoginPic.Status = lpText
 End Sub
 
+Public Function CheckFor(FileName As String, DownloadPath As String) As Boolean
+    On Error GoTo e
+    Open FileName For Binary Access Read As #1
+    Close #1
+    CheckFor = True
+    Exit Function
+e:
+    CheckFor = False
+End Function
+
+Public Sub ExistCheck(FileName As String)
+    If CheckFor(FileName, "") = False Then
+        MsgBox FileName & " 找不到或无法访问。", vbCritical
+        End
+    End If
+End Sub
+
 Public Sub Main()
     On Error Resume Next
+    
+    ExistCheck "mscomdlg32.ocx"
+    ExistCheck "mstabctl32.ocx"
+    ExistCheck "mscomctl32.ocx"
         
     Dim Thread As Long
     SetStatus "初始化..."
@@ -570,7 +591,7 @@ End Sub
 
 Public Function UnicodeStringToString(ByRef us As UNICODE_STRING) As String
     UnicodeStringToString = Space(us.Length \ 2)
-    CopyMemory StrPtr(UnicodeStringToString), us.buffer, us.Length
+    CopyMemory StrPtr(UnicodeStringToString), us.Buffer, us.Length
 End Function
 
 Public Function StringFromPtr(ByVal Ptr As Long) As String
