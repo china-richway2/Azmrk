@@ -1346,6 +1346,7 @@ Begin VB.Form Menu
    End
    Begin VB.Menu sSSDT 
       Caption         =   "SSDT²Ëµ¥"
+      Visible         =   0   'False
       Begin VB.Menu sRecover 
          Caption         =   "»Ö¸´"
       End
