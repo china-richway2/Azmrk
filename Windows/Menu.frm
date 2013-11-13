@@ -1441,14 +1441,14 @@ Private Sub dDump_Click()
         End If
         ReDim Preserve Data(1 To pSize)
         cd.Filter = "所有文件(*.*)|*.*|驱动文件(*.sys)|*.sys"
-        On Error GoTo E
+        On Error GoTo e
         cd.CancelError = True
         cd.ShowSave
         Open cd.FileName For Binary As #1
         Put #1, , Data
         Close #1
     End With
-E:
+e:
 End Sub
 
 Private Sub Form_LinkExecute(CmdStr As String, Cancel As Integer)
@@ -2272,9 +2272,10 @@ Private Sub pAttach_Click()
     Set nSel = ListView2.SelectedItem
     If nSel Is Nothing Then Exit Sub
     Dim n As Long
-    If Dir("BeaEngine.dll") = "" Then
-        MsgBox "你没有下载BeaEngine.dll。无法进行调试。", vbCritical
-        'Exit Sub
+    If CheckFor("BeaEngine.dll", "") = False Then
+        MsgBox "没有找到BeaEngine.dll，无法进行调试。", vbCritical
+        pAttach.Enabled = False
+        Exit Sub
     End If
     For n = 0 To UBound(Processes)
         With Processes(n)
@@ -2737,6 +2738,9 @@ End Sub
 
 Public Function SetVisual(ByRef Visuals() As String, ByRef Soft() As String) '设置外观
     On Error GoTo 0
+    Static SkinH_VB6 As Boolean
+    
+    If SkinH_VB6 Then Exit Function
     
     Dim i    As Long ', ok As Boolean
     Dim temp As String
@@ -2750,6 +2754,12 @@ Public Function SetVisual(ByRef Visuals() As String, ByRef Soft() As String) '设
             If InStr(Me.Controls(i).Name, "Slider") > 0 Then Me.Controls(i).Enabled = False
         Next
 
+        Exit Function
+    End If
+    
+    If CheckFor("SkinH_VB6.dll", "") = False Then
+        MsgBox "没有找到SkinH_VB6.dll，无法加载皮肤。", vbCritical
+        SkinH_VB6 = True
         Exit Function
     End If
 
