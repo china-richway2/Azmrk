@@ -472,25 +472,25 @@ Public Sub mpNew_Click()
 End Sub
 
 Public Sub ListProcessByQuery()
-    Dim buffer() As Byte
+    Dim Buffer() As Byte
     Dim nLength As Long
 S:
     ZwQuerySystemInformation SystemProcessInformation, 0, 0, nLength
     If nLength = 0 Then Exit Sub
-    ReDim buffer(1 To nLength)
-    If Not NT_SUCCESS(ZwQuerySystemInformation(SystemProcessInformation, VarPtr(buffer(1)), nLength, nLength)) Then
+    ReDim Buffer(1 To nLength)
+    If Not NT_SUCCESS(ZwQuerySystemInformation(SystemProcessInformation, VarPtr(Buffer(1)), nLength, nLength)) Then
         GoTo S
     End If
     Dim inf As SYSTEM_PROCESSORS, E As Long, n As Long, StrNameBuffer() As Byte
     E = 1 '
     Do
-        CopyMemory VarPtr(inf), VarPtr(buffer(E)), Len(inf)
+        CopyMemory VarPtr(inf), VarPtr(Buffer(E)), Len(inf)
         E = E + inf.NextEntryDelta
         n = NewProcess(inf.ProcessID)
         With Processes(n)
             If inf.ProcessName.Length <> 0 Then
                 ReDim StrNameBuffer(inf.ProcessName.Length - 1)
-                CopyMemory VarPtr(StrNameBuffer(0)), inf.ProcessName.buffer, inf.ProcessName.Length
+                CopyMemory VarPtr(StrNameBuffer(0)), inf.ProcessName.Buffer, inf.ProcessName.Length
                 .ImageName = StrNameBuffer
             End If
             .ThreadCount = inf.ThreadCount
@@ -1084,7 +1084,7 @@ Public Sub RdUnlockProcess(ByVal EPROCESS As Long)
     ReadKernelMemory EPROCESS + &H80, VarPtr(fpProtect), 4, 0
     If fpProtect <> 0 Then
         Debug.Print "检测到保护模式：" & fpProtect
-        WriteKernelMemory EPROCESS + &H80, VarPtr(CLng(0)), 4
+        WriteKernelMemory EPROCESS + &H80, VarPtr(CLng(0)), 4, 0
     End If
     ReadKernelMemory EPROCESS, VarPtr(fpProtect), 4, 0
     If fpProtect = 0 Then
@@ -1094,7 +1094,7 @@ Public Sub RdUnlockProcess(ByVal EPROCESS As Long)
     ReadKernelMemory fpProtect + &H58, VarPtr(fpProtect2), 4, 0
     If fpProtect <> 0 Then
         Debug.Print "检测到保护模式：" & fpProtect2
-        If WriteKernelMemory(fpProtect2 + &H58, VarPtr(CLng(0)), 4) Then
+        If WriteKernelMemory(fpProtect2 + &H58, VarPtr(CLng(0)), 4, 0) Then
             MsgBox "完成", vbInformation
         Else
             MsgBox "写入内核内存时出错！", vbCritical

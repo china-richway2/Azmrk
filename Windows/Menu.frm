@@ -2272,6 +2272,10 @@ Private Sub pAttach_Click()
     Set nSel = ListView2.SelectedItem
     If nSel Is Nothing Then Exit Sub
     Dim n As Long
+    If Dir("BeaEngine.dll") = "" Then
+        MsgBox "你没有下载BeaEngine.dll。无法进行调试。", vbCritical
+        'Exit Sub
+    End If
     For n = 0 To UBound(Processes)
         With Processes(n)
             If .ListViewIndex = nSel.Index Then
