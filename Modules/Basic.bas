@@ -231,19 +231,23 @@ Public Sub SetStatus(ByRef lpText As String)
     LoginPic.Status = lpText
 End Sub
 
-Public Function CheckFor(FileName As String, DownloadPath As String) As Boolean
+Public Function CheckFor(FileName As String, DownloadPath As String) As Integer
     On Error GoTo e
-    Open FileName For Binary Access Read As #1
+    Open FileName For Input As #1
     Close #1
-    CheckFor = True
+    CheckFor = 0
     Exit Function
 e:
-    CheckFor = False
+    If Err.Number = 53 Then
+        CheckFor = 2
+    Else
+        CheckFor = 1
+    End If
 End Function
 
 Public Sub ExistCheck(FileName As String)
-    If CheckFor(FileName, "") = False Then
-        MsgBox FileName & " 找不到或无法访问。", vbCritical
+    If CheckFor(FileName, "") = 2 Then
+        MsgBox FileName & " 找不到。", vbCritical
         End
     End If
 End Sub
