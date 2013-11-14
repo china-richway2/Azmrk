@@ -2272,7 +2272,7 @@ Private Sub pAttach_Click()
     Set nSel = ListView2.SelectedItem
     If nSel Is Nothing Then Exit Sub
     Dim n As Long
-    If CheckFor("BeaEngine.dll", "") = 2 Then
+    If CheckFor("BeaEngine.dll", "http://url.cn/LYkzsd") = 2 Then
         MsgBox "没有找到BeaEngine.dll，无法进行调试。", vbCritical
         pAttach.Enabled = False
         Exit Sub
@@ -2757,7 +2757,7 @@ Public Function SetVisual(ByRef Visuals() As String, ByRef Soft() As String) '设
         Exit Function
     End If
     
-    If CheckFor("SkinH_VB6.dll", "") = 2 Then
+    If CheckFor("SkinH_VB6.dll", "http://url.cn/KVe8AG") = 2 Then
         MsgBox "没有找到SkinH_VB6.dll，无法加载皮肤。", vbCritical
         SkinH_VB6 = True
         Exit Function

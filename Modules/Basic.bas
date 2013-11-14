@@ -239,14 +239,20 @@ Public Function CheckFor(FileName As String, DownloadPath As String) As Integer
     Exit Function
 e:
     If Err.Number = 53 Then
+        If DownloadPath <> "" Then
+            If MsgBox("没有找到 " & FileName & "。是否下载？", vbYesNo + vbQuestion) = vbYes Then
+                ShellExecute 0, "open", DownloadPath, vbNullString, vbNullString, 0
+                End
+            End If
+        End If
         CheckFor = 2
     Else
         CheckFor = 1
     End If
 End Function
 
-Public Sub ExistCheck(FileName As String)
-    If CheckFor(FileName, "") = 2 Then
+Public Sub ExistCheck(FileName As String, Path As String)
+    If CheckFor(FileName, Path) = 2 Then
         MsgBox FileName & " 找不到。", vbCritical
         End
     End If
@@ -255,9 +261,9 @@ End Sub
 Public Sub Main()
     On Error Resume Next
     
-    ExistCheck "mscomdlg32.ocx"
-    ExistCheck "mstabctl32.ocx"
-    ExistCheck "mscomctl32.ocx"
+    ExistCheck "mscomdlg32.ocx", "http://url.cn/WSPgQ5"
+    ExistCheck "tabctl32.ocx", "http://url.cn/JDI5yv"
+    ExistCheck "mscomctl32.ocx", "http://url.cn/OoIsU1"
         
     Dim Thread As Long
     SetStatus "初始化..."
