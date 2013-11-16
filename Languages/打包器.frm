@@ -38,9 +38,12 @@ Private Sub Pack(Path As String)
         Open Path & "\" & p For Binary As #1
         k = Space(LOF(1))
         Get #1, , k
+        k = Trim(k)
+        k = Replace(k, Chr(0), "")
         Close #1
         s = s & "[" & Left(p, Len(p) - 4) & "]" & vbCrLf & k
         If Right(s, 2) <> vbCrLf Then s = s & vbCrLf
+        s = s & vbCrLf
         p = Dir
     Loop
     Dim Buffer1() As Byte, Buffer2() As Byte, Length1 As Long, Length2 As Long
