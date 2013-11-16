@@ -12,51 +12,51 @@ Private Stream(1) As BytePos    '0=vbc-code 1=bitstreams
 
 Private ExtraLengthBits(15) As Integer
 Private StartValLength(15) As Integer
-Private Dictionary As String
+Private Dictionary(255) As Byte
 Private CharCount(256) As Long
 
 Public Sub Compress_VBC_Dynamic(ByteArray() As Byte)
     Dim Char As Integer
     Dim NewFileLen As Long
-    Dim X As Long
-    Dim Y As Long
+    Dim x As Long
+    Dim y As Long
     Call init_Dynamic_VBC
-    For X = 0 To UBound(ByteArray)
-        Char = ByteArray(X)
+    For x = 0 To UBound(ByteArray)
+        Char = ByteArray(x)
         Call Store_Char(Char)
         Call update_Model(Char)
     Next
 'send EOF character
     Call Store_Char(256)
 'lets fill the leftovers
-    For X = 0 To 1
-        Do While Stream(X).BitPos > 0
-            Call AddBitsToStream(Stream(X), 0, 1)
+    For x = 0 To 1
+        Do While Stream(x).BitPos > 0
+            Call AddBitsToStream(Stream(x), 0, 1)
         Loop
     Next
 'Lets restore the bounderies
-    For X = 0 To 1
-        ReDim Preserve Stream(X).Data(Stream(X).Position - 1)
+    For x = 0 To 1
+        ReDim Preserve Stream(x).Data(Stream(x).Position - 1)
     Next
 'whe calculate the new length of the new data
     NewFileLen = 0
-    For X = 0 To 1
-        NewFileLen = NewFileLen + UBound(Stream(X).Data) + 1
+    For x = 0 To 1
+        NewFileLen = NewFileLen + UBound(Stream(x).Data) + 1
     Next
     ReDim ByteArray(NewFileLen + 3)
 'here we store the compressed data
     NewFileLen = 0
-    For X = 0 To 0
-        ByteArray(NewFileLen) = Int(UBound(Stream(X).Data) / &H10000) And &HFF
+    For x = 0 To 0
+        ByteArray(NewFileLen) = Int(UBound(Stream(x).Data) / &H10000) And &HFF
         NewFileLen = NewFileLen + 1
-        ByteArray(NewFileLen) = Int(UBound(Stream(X).Data) / &H100) And &HFF
+        ByteArray(NewFileLen) = Int(UBound(Stream(x).Data) / &H100) And &HFF
         NewFileLen = NewFileLen + 1
-        ByteArray(NewFileLen) = UBound(Stream(X).Data) And &HFF
+        ByteArray(NewFileLen) = UBound(Stream(x).Data) And &HFF
         NewFileLen = NewFileLen + 1
     Next
-    For X = 0 To 1
-        For Y = 0 To UBound(Stream(X).Data)
-            ByteArray(NewFileLen) = Stream(X).Data(Y)
+    For x = 0 To 1
+        For y = 0 To UBound(Stream(x).Data)
+            ByteArray(NewFileLen) = Stream(x).Data(y)
             NewFileLen = NewFileLen + 1
         Next
     Next
@@ -71,12 +71,12 @@ Public Sub DeCompress_VBC_Dynamic(ByteArray() As Byte)
     Dim InDataBit As Integer
     Dim Char As Integer
     Dim VBC_Code As Integer
-    Dim X As Long
+    Dim x As Long
     ReDim OutStream(500)
     Call init_Dynamic_VBC
     InposCont = 0
     InposData = 0
-    For X = 0 To 2
+    For x = 0 To 2
         InposData = CLng(InposData) * 256 + ByteArray(InposCont)
         InposCont = InposCont + 1
     Next
@@ -91,13 +91,13 @@ Public Sub DeCompress_VBC_Dynamic(ByteArray() As Byte)
     If Char = 255 Then
         Char = 255
     End If
-        Char = Asc(Mid(Dictionary, Char + 1))
+        Char = Dictionary(Char)
         Call AddCharToArray(OutStream, OutPos, CByte(Char))
         Call update_Model(Char)
     Loop
     ReDim ByteArray(OutPos - 1)
-    For X = 0 To OutPos - 1
-        ByteArray(X) = OutStream(X)
+    For x = 0 To OutPos - 1
+        ByteArray(x) = OutStream(x)
     Next
 End Sub
 
@@ -107,9 +107,11 @@ Private Sub Store_Char(Char As Integer)
     If Char = 256 Then
         ByteValue = Char
     Else
-        ByteValue = InStr(Dictionary, Chr(Char)) - 1
+        For ByteValue = 0 To 255
+            If Dictionary(ByteValue) = Char Then Exit For
+        Next
     End If
-    Dim X As Integer
+    Dim x As Integer
     For VBC_Code = 1 To 15
         If StartValLength(VBC_Code) > ByteValue Then Exit For
     Next
@@ -120,7 +122,7 @@ Private Sub Store_Char(Char As Integer)
 End Sub
 
 Private Sub init_Dynamic_VBC()
-    Dim X As Integer
+    Dim x As Integer
 '                    bitsNeeded    from to char     gain/loss
     ExtraLengthBits(0) = 0         '0                  +4
     ExtraLengthBits(1) = 0         '1                  +4
@@ -139,17 +141,17 @@ Private Sub init_Dynamic_VBC()
     ExtraLengthBits(14) = 6        '132-195            -2
     ExtraLengthBits(15) = 6        '196-259            -2
     StartValLength(0) = 0
-    For X = 1 To 15
-        StartValLength(X) = StartValLength(X - 1) + (2 ^ ExtraLengthBits(X - 1))
+    For x = 1 To 15
+        StartValLength(x) = StartValLength(x - 1) + (2 ^ ExtraLengthBits(x - 1))
     Next
-    Dictionary = ""
-    For X = 0 To 255
-        Dictionary = Dictionary & Chr(X)
-        CharCount(X) = 0
+    'StartValLength = 0 1 2 3 4 8 12 16 20 24 28 32 36 68 132 196
+    For x = 0 To 255
+        Dictionary(x) = x
+        CharCount(x) = 0
     Next
     CharCount(256) = 0
-    For X = 0 To 1
-        With Stream(X)
+    For x = 0 To 1
+        With Stream(x)
             ReDim .Data(500)
             .BitPos = 0
             .Buffer = 0
@@ -162,30 +164,45 @@ Private Sub update_Model(Char As Integer)
     Dim DictPos As Integer
     Dim OldPos As Integer
     Dim Temp As Long
-    DictPos = InStr(Dictionary, Chr(Char))
+    For DictPos = 0 To 255
+        If Dictionary(DictPos) = Char Then Exit For
+    Next
+    DictPos = DictPos
     OldPos = DictPos
+    If OldPos = 256 Then Stop
     CharCount(DictPos) = CharCount(DictPos) + 1
-    Do While DictPos > 1 And CharCount(DictPos) >= CharCount(DictPos - 1)
-        Temp = CharCount(DictPos - 1)
-        CharCount(DictPos - 1) = CharCount(DictPos)
-        CharCount(DictPos) = Temp
-        DictPos = DictPos - 1
+    Do While DictPos > 0
+        If CharCount(DictPos) > CharCount(DictPos - 1) Then
+            Temp = CharCount(DictPos - 1)
+            CharCount(DictPos - 1) = CharCount(DictPos)
+            CharCount(DictPos) = Temp
+            DictPos = DictPos - 1
+        Else
+            Exit Do
+        End If
     Loop
     If OldPos = DictPos Then Exit Sub
-    Dictionary = Left(Dictionary, DictPos - 1) & Chr(Char) & Mid(Dictionary, DictPos, OldPos - DictPos) & Mid(Dictionary, OldPos + 1)
+    Dim NewDict(255) As Byte
+    CopyMemory NewDict(0), Dictionary(0), OldPos
+    CopyMemory NewDict(OldPos), Dictionary(OldPos + 1), 255 - OldPos
+    CopyMemory Dictionary(0), NewDict(0), DictPos
+    Dictionary(DictPos) = Char
+    CopyMemory Dictionary(DictPos + 1), NewDict(DictPos), 255 - DictPos
+    'Dictionary = Left(Dictionary, DictPos - 1) & Chr(Char) & _
+    Mid(Dictionary, DictPos, OldPos - DictPos) & Mid(Dictionary, OldPos + 1)
 End Sub
 
 'this sub will add an amount of bits to a sertain stream
 Private Sub AddBitsToStream(Toarray As BytePos, Number As Integer, Numbits As Integer)
-    Dim X As Long
+    Dim x As Long
     If Numbits = 8 And Toarray.BitPos = 0 Then
         If Toarray.Position > UBound(Toarray.Data) Then ReDim Preserve Toarray.Data(Toarray.Position + 500)
         Toarray.Data(Toarray.Position) = Number And &HFF
         Toarray.Position = Toarray.Position + 1
         Exit Sub
     End If
-    For X = Numbits - 1 To 0 Step -1
-        Toarray.Buffer = Toarray.Buffer * 2 + (-1 * ((Number And 2 ^ X) > 0))
+    For x = Numbits - 1 To 0 Step -1
+        Toarray.Buffer = Toarray.Buffer * 2 + (-1 * ((Number And 2 ^ x) > 0))
         Toarray.BitPos = Toarray.BitPos + 1
         If Toarray.BitPos = 8 Then
             If Toarray.Position > UBound(Toarray.Data) Then ReDim Preserve Toarray.Data(Toarray.Position + 500)
@@ -199,16 +216,16 @@ End Sub
 
 'this function will return a value out of the amaunt of bits you asked for
 Private Function ReadBitsFromArray(FromArray() As Byte, FromPos As Long, FromBit As Integer, Numbits As Integer) As Long
-    Dim X As Integer
+    Dim x As Integer
     Dim Temp As Long
-    For X = 1 To Numbits
+    For x = 1 To Numbits
         Temp = Temp * 2 + (-1 * ((FromArray(FromPos) And 2 ^ (7 - FromBit)) > 0))
         FromBit = FromBit + 1
         If FromBit = 8 Then
             If FromPos + 1 > UBound(FromArray) Then
-                Do While X < Numbits
+                Do While x < Numbits
                     Temp = Temp * 2
-                    X = X + 1
+                    x = x + 1
                 Loop
                 FromPos = FromPos + 1
                 Exit For
