@@ -98,6 +98,8 @@ Private Sub Form_Load()
         .Add , , "线程状态", 1000
         .Add , , "线程模块", 3540
     End With
+    
+    If nsItem = 0 Then Exit Sub
 
     mPid = nsItem
     

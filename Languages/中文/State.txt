@@ -1,0 +1,9 @@
+State=Arzmk Follow
+lbl=坐标：
+lbl=父窗：
+lbl=状态：
+lbl=TID：
+lbl=PID：
+lbl=句柄：
+lbl=类名：
+lbl=窗体：

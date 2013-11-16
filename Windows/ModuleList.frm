@@ -1,5 +1,5 @@
 VERSION 5.00
-Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "msComDlg32.OCX"
+Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "COMDLG32.OCX"
 Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "MSCOMCTL.ocx"
 Begin VB.Form ModuleList 
    BorderStyle     =   1  'Fixed Single
@@ -124,6 +124,8 @@ Private Sub Form_Load()
     ListView1.ColumnHeaders.Add , , "函数入口", 1300
     ListView1.ColumnHeaders.Add , , "模块大小", 1200
     ListView1.Tag = 0
+    
+    If nsItem = 0 Then Exit Sub
     
     mPid = nsItem
     Dialog1.Filter = "动态链接库文件(*.dll,*.ocx)|*.dll;*.ocx"

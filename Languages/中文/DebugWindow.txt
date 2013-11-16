@@ -1,0 +1,5 @@
+DebugWindow=Azmrk 调试器 - 进程 
+dMenu=菜单
+dBreak=Break目标进程
+dSuspendImmediatly=瞬间挂起
+dResume=恢复

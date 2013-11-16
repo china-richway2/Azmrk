@@ -1,0 +1,11 @@
+DebugThreadWindow=Azmrk 调试器 - 线程 
+Command6=单步步过
+Command5=恢复
+Command4=挂起
+Command3=单步步入
+Command2=继续调试
+Command1=反汇编EIP
+Frame1=寄存器
+Label2=挂起计数：0
+Label1=未发生异常.
+TimeLabel=运行时间：

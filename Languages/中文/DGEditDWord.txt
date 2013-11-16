@@ -1,0 +1,6 @@
+DGEditDWord=修改值
+Command2=取消
+Command1=确定
+Label3=带符号数：
+Label2=无符号数：
+Label1=16进制值：

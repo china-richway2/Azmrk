@@ -1,0 +1,5 @@
+HandleList=目标进程打开的句柄
+hMenu=菜单
+hRefresh=刷新
+hClose=释放
+pCloseAll=尝试全部释放

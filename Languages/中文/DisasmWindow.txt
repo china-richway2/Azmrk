@@ -1,0 +1,3 @@
+DisasmWindow=反汇编窗口
+dMenu=菜单
+dJumpToExp=转到表达式

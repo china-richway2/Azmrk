@@ -1,0 +1,5 @@
+DGEditValue=修改值
+cmdCancel=取消
+cmdOK=确定
+Label2=字符串：
+Label1=十六进制值：

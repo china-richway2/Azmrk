@@ -1,0 +1,3 @@
+About=关于本程序
+cmdOK=确定
+lblDisclaimer=警告: 本程序乃Naylon无聊时胡乱编写，可随意复制传播，翻版不究，盗版无妨。

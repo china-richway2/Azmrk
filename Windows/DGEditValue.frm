@@ -30,7 +30,7 @@ Begin VB.Form DGEditValue
       Width           =   1215
    End
    Begin VB.Frame Frame3 
-      Caption         =   "Base64ֵ"
+      Caption         =   "Base64"
       Height          =   1455
       Left            =   120
       TabIndex        =   7
@@ -121,13 +121,13 @@ Private Sub SetString(ByRef szString() As Byte, ByVal iType As Long)
     If iType <> 0 Then txtASCII.Text = szString
     If iType <> 1 Then txtUnicode.Text = StrConv(szString, vbUnicode)
     If iType <> 2 Then
-        Dim s As String
-        s = Space(UBound(szString) * 2 + 2)
+        Dim S As String
+        S = Space(UBound(szString) * 2 + 2)
         Dim i As Long
-        For i = 1 To Len(s) Step 2
-            Mid(s, i, 2) = right("0" & Hex(szString(i \ 2)), 2)
+        For i = 1 To Len(S) Step 2
+            Mid(S, i, 2) = right("0" & Hex(szString(i \ 2)), 2)
         Next
-        txtHex.Text = s
+        txtHex.Text = S
     End If
     If iType <> 3 Then
         j = szString
@@ -190,10 +190,10 @@ End Sub
 Private Sub txtBase64_Change()
     If Not pType Then Exit Sub
     On Error Resume Next
-    Dim s() As Byte
-    s = StrConv(txtBase64.Text, vbFromUnicode)
-    Call Base64Array_Decode(s)
-    SetString s, -1
+    Dim S() As Byte
+    S = StrConv(txtBase64.Text, vbFromUnicode)
+    Call Base64Array_Decode(S)
+    SetString S, -1
     'SetString s, 4
 End Sub
 

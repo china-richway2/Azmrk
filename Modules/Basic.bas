@@ -232,12 +232,12 @@ Public Sub SetStatus(ByRef lpText As String)
 End Sub
 
 Public Function CheckFor(FileName As String, DownloadPath As String) As Integer
-    On Error GoTo e
+    On Error GoTo E
     Open FileName For Input As #1
     Close #1
     CheckFor = 0
     Exit Function
-e:
+E:
     If Err.Number = 53 Then
         If DownloadPath <> "" Then
             If MsgBox("没有找到 " & FileName & "。是否下载？", vbYesNo + vbQuestion) = vbYes Then
@@ -258,8 +258,25 @@ Public Sub ExistCheck(FileName As String, Path As String)
     End If
 End Sub
 
+Private Sub OutputStrings(p As Form)
+    Open p.Name & ".txt" For Output As #1
+    Dim i
+    On Error Resume Next
+    Print #1, p.Name & "=" & p.Caption
+    For Each i In p.Controls
+        Dim S As String
+        S = i.Caption
+        If S <> "" Then
+            Print #1, i.Name & "=" & S
+            S = ""
+        End If
+    Next
+    Close #1
+End Sub
+
 Public Sub Main()
     On Error Resume Next
+    
     
     ExistCheck "mscomdlg32.ocx", "http://url.cn/WSPgQ5"
     ExistCheck "tabctl32.ocx", "http://url.cn/JDI5yv"

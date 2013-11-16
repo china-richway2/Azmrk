@@ -79,6 +79,7 @@ Attribute VB_Exposed = False
 Dim mPid As Long
 Dim mEProcess As Long
 Private Sub Form_Load()
+    If nsItem = 0 Then Exit Sub '∑¿÷π“ª–©¥ÌŒÛ
     mEProcess = nsItem
     mPid = PsGetPidByEProcess(nsItem)
     Call HandleTarget

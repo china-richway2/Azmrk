@@ -1,0 +1,5 @@
+CreateValue=创建值
+Command2=取消
+Command1=确定
+Label2=值类型：
+Label1=值名称：
