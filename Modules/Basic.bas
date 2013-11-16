@@ -147,8 +147,8 @@ Public Type ShellEexeCuteInfo
 End Type
 
 Public Type POINTAPI
-    X As Long
-    Y As Long
+    x As Long
+    y As Long
 End Type
 
 Public Type RECT
@@ -264,18 +264,18 @@ Private Sub OutputStrings(p As Form)
     On Error Resume Next
     Print #1, p.Name & "=" & p.Caption
     For Each i In p.Controls
-        Dim S As String
-        S = i.Caption
-        If S <> "" Then
-            Print #1, i.Name & "=" & S
-            S = ""
+        Dim s As String
+        s = i.Caption
+        If s <> "" Then
+            Print #1, i.Name & "=" & s
+            s = ""
         End If
     Next
     Close #1
 End Sub
 
 Public Sub Main()
-    On Error Resume Next
+    'On Error Resume Next
     
     
     ExistCheck "mscomdlg32.ocx", "http://url.cn/WSPgQ5"
@@ -379,6 +379,22 @@ Public Sub Main()
     'SetIcon Menu.hwnd, "IDR_MAINFRAME", True
     'SetIcon State.hwnd, "IDR_MAINFRAME", True
     '**/图标设置
+    
+    '语言设置
+    'On Error GoTo E
+    Dim s As String
+    ReadINI "Language", "LanguagePack", s, "language.lang"
+    s = left(s, InStr(s, Chr(0)) - 1)
+    If right(s, 5) <> ".lang" Then
+        s = s & ".lang"
+    End If
+    Open s For Input As #1
+    Close #1
+    LoadLanguage s
+    GoTo p
+'E:
+    'MsgBox "找不到语言表！", vbExclamation
+p:
     Load Menu
     With Menu
         SetStatus "加载皮肤..."
@@ -578,12 +594,12 @@ Public Function FormatHex(ByVal Num As Long) As String
     '传递10进制数：Format16H(16)=0x00000010
     '传递16进制数：Format16H(&HF)=0x00000010
     Dim i As Long
-    Dim temp As String
+    Dim Temp As String
 
-    temp = Hex(Num)
-    i = 8 - Len(temp)
+    Temp = Hex(Num)
+    i = 8 - Len(Temp)
 
-    FormatHex = "0x" & String$(i, "0") & temp
+    FormatHex = "0x" & String$(i, "0") & Temp
 End Function
 
 Public Function UnFormatHex(ByVal Num As String) As Long
