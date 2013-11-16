@@ -19,7 +19,6 @@ Form=Windows\DGEditDWord.frm
 Form=Windows\DGEditValue.frm
 Form=Windows\HandleList.frm
 Form=Windows\About.frm
-Form=Windows\WaitWindow.frm
 Form=Windows\ShutdownWindow.frm
 Form=Windows\DebugWindow.frm
 Form=Windows\DebugThread.frm
