@@ -118,6 +118,7 @@ Option Explicit
 Dim mPid As Long
 
 Private Sub Form_Load()
+    ApplyLang Me
     ListView1.ColumnHeaders.Add , , "模块名称", 1500
     ListView1.ColumnHeaders.Add , , "模块句柄", 1300
     ListView1.ColumnHeaders.Add , , "模块路径", 4200

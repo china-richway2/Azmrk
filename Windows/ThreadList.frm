@@ -89,6 +89,7 @@ Option Explicit
 Dim mPid As Long
 
 Private Sub Form_Load()
+    ApplyLang Me
     With ListView1.ColumnHeaders
         .Add , , "Ïß³ÌID", 920
         .Add , , "TEB", 1300

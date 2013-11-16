@@ -169,6 +169,7 @@ Private Sub cmdOK_Click()
 End Sub
 
 Private Sub Form_Load()
+    ApplyLang Me
     pType = True
 End Sub
 

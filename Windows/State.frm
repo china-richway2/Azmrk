@@ -189,6 +189,7 @@ Dim hideme, hideok As Boolean
 Dim Align As Boolean
 
 Private Sub Form_Load()
+    ApplyLang Me
     Timer1.Tag = 1
     hideme = False
     hideok = False

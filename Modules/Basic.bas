@@ -275,12 +275,22 @@ Private Sub OutputStrings(p As Form)
 End Sub
 
 Public Sub Main()
-    'On Error Resume Next
+    On Error Resume Next
     
     
     ExistCheck "mscomdlg32.ocx", "http://url.cn/WSPgQ5"
     ExistCheck "tabctl32.ocx", "http://url.cn/JDI5yv"
     ExistCheck "mscomctl32.ocx", "http://url.cn/OoIsU1"
+    '语言设置
+    Dim s As String
+    ReadINI "Language", "LanguagePack", s, "language.lang"
+    s = left(s, InStr(s, Chr(0)) - 1)
+    If right(s, 5) <> ".lang" Then
+        s = s & ".lang"
+    End If
+    Open s For Input As #1
+    Close #1
+    LoadLanguage s
         
     Dim Thread As Long
     SetStatus "初始化..."
@@ -380,21 +390,6 @@ Public Sub Main()
     'SetIcon State.hwnd, "IDR_MAINFRAME", True
     '**/图标设置
     
-    '语言设置
-    'On Error GoTo E
-    Dim s As String
-    ReadINI "Language", "LanguagePack", s, "language.lang"
-    s = left(s, InStr(s, Chr(0)) - 1)
-    If right(s, 5) <> ".lang" Then
-        s = s & ".lang"
-    End If
-    Open s For Input As #1
-    Close #1
-    LoadLanguage s
-    GoTo p
-'E:
-    'MsgBox "找不到语言表！", vbExclamation
-p:
     Load Menu
     With Menu
         SetStatus "加载皮肤..."

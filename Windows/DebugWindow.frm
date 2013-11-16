@@ -141,6 +141,10 @@ Private Sub dSuspendImmediatly_Click()
     ZwSuspendProcess hProcess
 End Sub
 
+Private Sub Form_Load()
+    ApplyLang Me
+End Sub
+
 Private Sub Form_Unload(Cancel As Integer)
     ZwClose hDebug
     ZwClose hProcess

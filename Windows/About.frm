@@ -108,5 +108,5 @@ Private Sub cmdOK_Click()
 End Sub
 
 Private Sub Form_Load()
-
+    ApplyLang Me
 End Sub

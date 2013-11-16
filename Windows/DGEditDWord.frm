@@ -106,6 +106,10 @@ Private Sub Command2_Click()
     Unload Me
 End Sub
 
+Private Sub Form_Load()
+    ApplyLang Me
+End Sub
+
 Private Sub Text1_Change()
     If bType Then Exit Sub
     bType = 1

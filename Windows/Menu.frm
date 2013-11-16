@@ -1621,7 +1621,8 @@ Private Sub Form_Load()
     'SetIcon Me.hWnd, "IDR_MAINFRAME", True 'icon
     Dim i As Long
     
-    SetStatus "加载窗口..."
+    SetStatus "加载语言..."
+    ApplyLang Me
     
     With ListView1.ColumnHeaders
         .Add , , "窗口", 3200

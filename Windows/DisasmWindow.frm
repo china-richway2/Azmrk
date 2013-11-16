@@ -280,31 +280,35 @@ Private Sub dJumpToExp_Click()
     JumpTo ParentWindow.ExprToPtr(InputBox("请输入表达式"))
 End Sub
 
+Private Sub Form_Load()
+    ApplyLang Me
+End Sub
+
 Private Sub Form_Resize()
     vs.Move ScaleWidth - vs.Width, 0
     vs.Height = ScaleHeight
     MyDisasmList.Move 0, 0, ScaleWidth - vs.Width, ScaleHeight
 End Sub
 
-Private Sub MyDisasmList_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub MyDisasmList_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
     Dim hCursor As Long
     hCursor = LoadCursor(0, IDC_SIZEWE)
-    If (X \ 15 > leftAddr \ 15 - 3) And (X \ 15 < leftAddr \ 15 + 3) Then
+    If (x \ 15 > leftAddr \ 15 - 3) And (x \ 15 < leftAddr \ 15 + 3) Then
         SetCursor hCursor
         If Button = 1 Then
-            leftAddr = X
+            leftAddr = x
             Call MyDisasmList_Paint
         End If
-    ElseIf (X \ 15 > leftHex \ 15 - 3) And (X \ 15 < leftHex \ 15 + 3) Then
+    ElseIf (x \ 15 > leftHex \ 15 - 3) And (x \ 15 < leftHex \ 15 + 3) Then
         SetCursor hCursor
         If Button = 1 Then
-            If X > leftAddr + 45 Then leftHex = X
+            If x > leftAddr + 45 Then leftHex = x
             Call MyDisasmList_Paint
         End If
-    ElseIf (X \ 15 > leftDisasm \ 15 - 3) And (X \ 15 < leftDisasm \ 15 + 3) Then
+    ElseIf (x \ 15 > leftDisasm \ 15 - 3) And (x \ 15 < leftDisasm \ 15 + 3) Then
         SetCursor hCursor
         If Button = 1 Then
-            If X > leftHex + 45 Then leftDisasm = X
+            If x > leftHex + 45 Then leftDisasm = x
             Call MyDisasmList_Paint
         End If
     End If

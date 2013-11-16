@@ -393,6 +393,10 @@ Private Sub Command6_Click()
     End If
 End Sub
 
+Private Sub Form_Load()
+    ApplyLang Me
+End Sub
+
 Private Sub Form_Unload(Cancel As Integer)
     Cancel = 1
     Hide

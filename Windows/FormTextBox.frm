@@ -54,6 +54,10 @@ Public Sub CatchText()
     Catching = False
 End Sub
 
+Private Sub Form_Load()
+    ApplyLang Me
+End Sub
+
 Private Sub Form_Resize()
     Text1.Move 0, 0, ScaleWidth, ScaleHeight
 End Sub
