@@ -219,7 +219,7 @@ Public Sub LoginTransport(ByVal hWnd As Long)
 
     SetLayeredWindowAttributes hWnd, 0, 0, LWA_ALPHA
     ShowWindow hWnd, SW_SHOW
-    For i = 0 To 255 Step 3
+    For i = 55 To 255 Step 3
         SetLayeredWindowAttributes hWnd, 0, i, LWA_ALPHA
         Sleep 15
     Next
@@ -284,15 +284,8 @@ Public Sub Main()
 
     SetLayeredWindowAttributes LoginPic.hWnd, 0, 0, LWA_ALPHA
     LoginPic.Show
-
-    For i = 0 To 250 Step 10
-        SetLayeredWindowAttributes LoginPic.hWnd, 0, i, LWA_ALPHA
-
-        DoEvents
-        Sleep 50
-    Next i
+    rtn = begin_thread(AddressOf LoginTransport, VarPtr(LoginPic.hWnd), 1)
     
-    Unload LoginPic
     SetStatus "读取配置..."
     Dim TempStr       As String
     Dim VisualTitle() As String '视觉设置
@@ -389,10 +382,10 @@ Public Sub Main()
         Call GMNew
         DoEvents
         nSelectedItem(0) = .ListView1.ListItems(1).SubItems(2)
-    
-        'ZwClose Thread
-        'Unload LoginPic
-        
+        SetStatus "正在启动..."
+        WaitForSingleObject rtn, 100000
+        ZwClose rtn
+        Unload LoginPic
         .Show
         .Refresh
     End With
