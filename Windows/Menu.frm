@@ -1759,7 +1759,6 @@ Private Sub Form_Unload(Cancel As Integer)
     Unload ProcessStart
     Unload ShutdownWindow
     Unload State
-    Unload WaitWindow
     Unload About
     Unload CreateValue
     Unload DGEditDWord
@@ -2498,11 +2497,6 @@ End Sub
 Private Sub pRdNewByHandleList_Click()
     ListView2.Tag = MethodHandleList
     Call PNNew
-End Sub
-
-Private Sub pReleaseAll_Click()
-    Load WaitWindow
-    'WaitWindow.BeginReleaseAll
 End Sub
 
 Private Sub pRestart_Click()
