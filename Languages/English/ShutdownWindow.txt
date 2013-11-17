@@ -1,0 +1,5 @@
+ShutdownWindow=关机
+Command1=关机
+Check4=重新启动
+Check3=强制性的关机
+Check2=关闭系统并关闭电源

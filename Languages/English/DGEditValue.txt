@@ -1,0 +1,5 @@
+DGEditValue=Edit value
+cmdCancel=Cancel
+cmdOK=Yes
+Label2=String:
+Label1=Hex value:

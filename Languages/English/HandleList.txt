@@ -1,0 +1,5 @@
+HandleList=Handles opened by target process
+hMenu=Menu
+hRefresh=Refresh
+hClose=Close
+pCloseAll=Close All

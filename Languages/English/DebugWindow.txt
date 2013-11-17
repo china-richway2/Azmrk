@@ -1,0 +1,5 @@
+DebugWindow=Azmrk Debugger - Process
+dMenu=Menu
+dBreak=Break the target
+dSuspendImmediatly=Suspend
+dResume=Resume

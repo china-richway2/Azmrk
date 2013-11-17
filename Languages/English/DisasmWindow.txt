@@ -1,0 +1,3 @@
+DisasmWindow=Disassembler Window
+dMenu=Menu
+dJumpToExp=Jump to expression

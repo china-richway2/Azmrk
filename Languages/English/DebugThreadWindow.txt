@@ -1,0 +1,11 @@
+DebugThreadWindow=Azmrk Debugger - Thread
+Command6=Step
+Command5=Resume
+Command4=Suspend
+Command3=Step in
+Command2=Continue
+Command1=Disassembler EIP
+Frame1=Registers
+Label2=Suspend Count:0
+Label1=No Exception.
+TimeLabel=Running Time:

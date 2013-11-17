@@ -1,0 +1,5 @@
+CreateValue=Create a value
+Command2=Cancel
+Command1=OK
+Label2=Value Type:
+Label1=Value Name:

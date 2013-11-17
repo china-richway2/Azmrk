@@ -1,0 +1,6 @@
+DGEditDWord=Edit value
+Command2=Cancel
+Command1=Yes
+Label3=Signed value:
+Label2=Unsigned value:
+Label1=Hex value:

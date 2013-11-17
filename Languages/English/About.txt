@@ -1,0 +1,3 @@
+About=About this program
+cmdOK=Yes
+lblDisclaimer=There's nothing to say.
