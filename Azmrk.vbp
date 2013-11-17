@@ -46,7 +46,6 @@ Module=KernelStructs; Modules\KernelStructs.bas
 Module=GlobalModule; Modules\GlobalModule.bas
 Module=NT_Status; Modules\NT_Status.bas
 Module=ExceptionFilter; Modules\ExceptionFilter.bas
-Module=ModuleASM; Modules\ModuleASM.bas
 Module=Debugger; Modules\Debugger.bas
 Module=BeaEngine; Modules\BeaEngine.bas
 Module=SSDTable; Modules\SSDTable.bas
