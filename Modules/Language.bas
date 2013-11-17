@@ -37,7 +37,7 @@ Public Sub LoadLanguage(Name As String)
     With Languages(LangCount)
         ReDim .LangWindows(UBound(Langs) - 1)
         For i = 0 To UBound(Langs) - 1
-            LoadLang Langs(i), .LangWindows(.WindowCount)
+            LoadLang Langs(i), .LangWindows(i)
         Next
     End With
     LangCount = LangCount + 1
@@ -52,12 +52,44 @@ Public Sub ApplyLang(Window As Form, Optional Lang As Long = -1)
         Next
         If i > UBound(.LangWindows) Then Exit Sub '没有对应的语言项
         With .LangWindows(i)
-            For i = 0 To .SubItemCount
-                Window.Controls(.SubItems(i).Name).Caption = .SubItems(i).Value
+            For i = 0 To .SubItemCount - 1
+                Dim pName As String
+                pName = .SubItems(i).Name
+                If pName = .WindowName Then
+                    Window.Caption = .SubItems(i).Value
+                ElseIf right(pName, 1) = ")" Then
+                    Dim Index As Long
+                    Index = InStr(pName, "(") + 1
+                    Dim k As String
+                    k = left(pName, Index - 2)
+                    Index = Val(Mid(pName, Index, Len(pName) - Index))
+                    pName = k
+                    Window.Controls(pName)(Index).Caption = .SubItems(i).Value
+                Else
+                    Window.Controls(pName).Caption = .SubItems(i).Value
+                End If
             Next
         End With
     End With
 End Sub
+
+Public Function FindString(ByVal Name As String, Optional ByVal Lang As Long = -1) As String
+    Dim i As Long
+    If Lang = -1 Then Lang = DefaultLang
+    With Languages(DefaultLang)
+        For i = 0 To UBound(.LangWindows)
+            If .LangWindows(i).WindowName = "Default" Then Exit For
+        Next
+        With .LangWindows(i)
+            For i = 0 To UBound(.SubItems)
+                If .SubItems(i).Name = Name Then
+                    FindString = .SubItems(i).Value
+                    Exit Function
+                End If
+            Next
+        End With
+    End With
+End Function
 
 Private Sub LoadLang(ByVal s As String, Target As LangWindow)
     Dim p() As String
@@ -69,14 +101,16 @@ Private Sub LoadLang(ByVal s As String, Target As LangWindow)
     ItemCount = 0
     For Each k In p
         If left(k, 1) = "[" And right(k, 1) = "]" Then
-            Title = Mid(k, 2, Len(k) - 2)
-        Else
+            Target.WindowName = Mid(k, 2, Len(k) - 2)
+        ElseIf k <> "" Then
             Dim i As Long
             i = InStr(k, "=")
             With Target.SubItems(ItemCount)
                 .Name = left(k, i - 1)
+                If .Name = "" Then Stop
                 .Value = Mid(k, i + 1)
             End With
+            ItemCount = ItemCount + 1
         End If
     Next
 End Sub

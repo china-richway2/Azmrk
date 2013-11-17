@@ -4,6 +4,7 @@ Reference=*\G{00020430-0000-0000-C000-000000000046}#2.0#0#C:\WINDOWS\system32\st
 Module=Comp_VBC1; ..\Modules\Comp_VBC1.bas
 IconForm="Form1"
 Startup="Form1"
+ExeName32="打包器.exe"
 Command32=""
 Name="工程1"
 HelpContextID="0"

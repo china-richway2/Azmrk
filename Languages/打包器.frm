@@ -27,6 +27,7 @@ Private Sub Form_Load()
     For Each i In Split(s, "|")
         If i <> "" Then Pack CStr(i)
     Next
+    End
 End Sub
 
 Private Sub Pack(Path As String)

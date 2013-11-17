@@ -240,7 +240,7 @@ Public Function CheckFor(FileName As String, DownloadPath As String) As Integer
 E:
     If Err.Number = 53 Then
         If DownloadPath <> "" Then
-            If MsgBox("没有找到 " & FileName & "。是否下载？", vbYesNo + vbQuestion) = vbYes Then
+            If MsgBox(FindString("CheckFor.NotFound1") & FileName & FindString("CheckFor.NotFound2"), vbYesNo + vbQuestion) = vbYes Then
                 ShellExecute 0, "open", DownloadPath, vbNullString, vbNullString, 0
                 End
             End If
@@ -253,7 +253,7 @@ End Function
 
 Public Sub ExistCheck(FileName As String, Path As String)
     If CheckFor(FileName, Path) = 2 Then
-        MsgBox FileName & " 找不到。", vbCritical
+        MsgBox FileName & FindString("ExistCheck.NotFound"), vbCritical
         End
     End If
 End Sub
@@ -293,7 +293,7 @@ Public Sub Main()
     LoadLanguage s
         
     Dim Thread As Long
-    SetStatus "初始化..."
+    SetStatus FindString("Main.Initialize")
     EnablePrivilege SE_DEBUG
     InitSSDTableModule
     SetPriorityClass GetCurrentProcess, HIGH_PRIORITY_CLASS
@@ -313,7 +313,7 @@ Public Sub Main()
     LoginPic.Show
     rtn = begin_thread(AddressOf LoginTransport, VarPtr(LoginPic.hWnd), 1)
     
-    SetStatus "读取配置..."
+    SetStatus FindString("Main.ReadConfig")
     Dim TempStr       As String
     Dim VisualTitle() As String '视觉设置
     Dim SoftSetting() As String '软件设置
@@ -392,25 +392,25 @@ Public Sub Main()
     
     Load Menu
     With Menu
-        SetStatus "加载皮肤..."
+        SetStatus FindString("Main.LoadSkin")
         .SetVisual VisualValue, SoftValue
         DoEvents
         .Label1.Tag = "0"
         'ListViewColor Menu, Menu.ListView2
-        SetStatus "枚举窗口..."
+        SetStatus FindString("Main.LoadWindow")
         Call CNNew
         DoEvents
-        SetStatus "枚举进程..."
+        SetStatus FindString("Main.EnumProcess")
         Call PNNew
         DoEvents
-        SetStatus "枚举服务..."
+        SetStatus FindString("Main.EnumService")
         Call msNew_Click
         DoEvents
-        SetStatus "枚举驱动..."
+        SetStatus FindString("Main.EnumDrivers")
         Call GMNew
         DoEvents
         nSelectedItem(0) = .ListView1.ListItems(1).SubItems(2)
-        SetStatus "正在启动..."
+        SetStatus FindString("Main.Starting")
         WaitForSingleObject rtn, 100000
         ZwClose rtn
         Unload LoginPic
