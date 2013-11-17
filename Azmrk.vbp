@@ -53,6 +53,7 @@ Module=SSDTable; Modules\SSDTable.bas
 UserControl=RegList.ctl
 UserControl=Downloader.ctl
 ResFile32="¹¤³Ì1.RES"
+Module=Comp_VBC1; Modules\Comp_VBC1.bas
 IconForm="Menu"
 Startup="Sub Main"
 HelpFile=""

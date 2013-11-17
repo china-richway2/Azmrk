@@ -1441,14 +1441,14 @@ Private Sub dDump_Click()
         End If
         ReDim Preserve Data(1 To pSize)
         cd.Filter = "所有文件(*.*)|*.*|驱动文件(*.sys)|*.sys"
-        On Error GoTo e
+        On Error GoTo E
         cd.CancelError = True
         cd.ShowSave
         Open cd.FileName For Binary As #1
         Put #1, , Data
         Close #1
     End With
-e:
+E:
 End Sub
 
 Private Sub Form_LinkExecute(CmdStr As String, Cancel As Integer)
@@ -2743,9 +2743,9 @@ Public Function SetVisual(ByRef Visuals() As String, ByRef Soft() As String) '设
     If SkinH_VB6 Then Exit Function
     
     Dim i    As Long ', ok As Boolean
-    Dim temp As String
-    ReadINI "Visual settings", "Skin", temp
-    Menu.chk.Value = Val(temp)
+    Dim Temp As String
+    ReadINI "Visual settings", "Skin", Temp
+    Menu.chk.Value = Val(Temp)
 
     If Menu.chk.Value = 0 Then
 

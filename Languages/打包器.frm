@@ -53,7 +53,6 @@ Private Sub Pack(Path As String)
     Buffer2 = Buffer1
     Compress_VBC_Dynamic Buffer2
     Length2 = UBound(Buffer2) + 1
-    'DeCompress_VBC_Dynamic Buffer2
     Open Path & ".lang" For Output As #1
     Close #1
     Open Path & ".lang" For Binary As #1
