@@ -11,3 +11,4 @@ MSSCCPRJ.SCC
 *.ocx
 *.she
 Languages/*.txt
+*.lang
