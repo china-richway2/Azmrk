@@ -53,7 +53,6 @@ UserControl=RegList.ctl
 UserControl=Downloader.ctl
 Module=Comp_VBC1; Modules\Comp_VBC1.bas
 Module=Language; Modules\Language.bas
-ResFile32="¹¤³Ì1.RES"
 IconForm="Menu"
 Startup="Sub Main"
 HelpFile=""
