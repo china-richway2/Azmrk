@@ -818,26 +818,26 @@ Begin VB.Form Menu
       End
       Begin VB.CheckBox Check1 
          Caption         =   "总在最上"
-         Height          =   255
+         Height          =   405
          Left            =   7080
          TabIndex        =   3
-         Top             =   6840
+         Top             =   6765
          Width           =   1095
       End
       Begin VB.CheckBox Check3 
          Caption         =   "跟随鼠标"
-         Height          =   255
+         Height          =   405
          Left            =   8160
          TabIndex        =   2
-         Top             =   6840
+         Top             =   6765
          Width           =   1035
       End
       Begin VB.CheckBox Check2 
          Caption         =   "显示全部窗口"
-         Height          =   255
+         Height          =   405
          Left            =   9240
          TabIndex        =   1
-         Top             =   6840
+         Top             =   6765
          Width           =   1575
       End
       Begin MSComctlLib.ListView ListView1 
