@@ -120,10 +120,10 @@ Public Sub Attach(ByVal dwProcessId As Long)
 End Sub
 
 Private Sub dBreak_Click()
-    Dim Cid As CLIENT_ID, hThread As Long, fn As Long
+    Dim cid As CLIENT_ID, hThread As Long, fn As Long
     'Stop
     fn = GetProcAddress(GetModuleHandle("ntdll"), "DbgBreakPoint")
-    RtlCreateUserThread hProcess, ByVal 0, 1, 0, 0, 0, fn, 0, hThread, Cid
+    RtlCreateUserThread hProcess, ByVal 0, 1, 0, 0, 0, fn, 0, hThread, cid
     fn = GetProcAddress(GetModuleHandle("ntdll"), "RtlExitUserThread")
     Dim Ctxt As CONTEXT
     Timer1_Timer
@@ -169,9 +169,9 @@ Public Sub DispatchEvent(ByVal pNtEvent As Long)
         With de1
             Select Case .ExceptionRecord.ExceptionCode
             Case EXCEPTION_ACCESS_VIOLATION
-                Bar.Panels(1).Text = "访问违规："
+                Bar.Panels(1).Text = FindString("EXCEPTION_ACCESS_VIOLATION")
             Case EXCEPTION_ARRAY_BOUNDS_EXCEEDED
-                Bar.Panels(1).Text = "数组出界"
+                Bar.Panels(1).Text = FindString("EXCEPTION_ARRAY_BOUNDS_EXCEEDED")
             Case EXCEPTION_BREAKPOINT
             Case EXCEPTION_CONTINUABLE
             Case EXCEPTION_CONTINUE_EXECUTION
@@ -196,7 +196,7 @@ Public Sub DispatchEvent(ByVal pNtEvent As Long)
         'Stop
         With GetThreadWindow(Buffer(2))
             .Command2.Enabled = True
-            .Label1.Caption = "异常 " & Hex(de1.ExceptionRecord.ExceptionCode)
+            .Label1.Caption = FindString("Exception") & Hex(de1.ExceptionRecord.ExceptionCode)
             .ChangeContext
             .Command1_Click
         End With
@@ -237,7 +237,7 @@ Public Sub DispatchEvent(ByVal pNtEvent As Long)
         End With
     Case EXIT_PROCESS_DEBUG_EVENT '= 6
         UnionToType de5, Buffer(3), Len(de5)
-        MsgBox "进程已经终止，退出代码：" & de5.dwExitCode, vbInformation
+        MsgBox FindString("ProcessTerminated") & de5.dwExitCode, vbInformation
         ZwClose hProcess
         Exit Sub
     Case LOAD_DLL_DEBUG_EVENT '= 7
@@ -283,11 +283,11 @@ Public Function ExprToPtr(ByVal szExp As String) As Long
     Dim i As Long, j As Long, mHandle As Long
     For i = 0 To mNum - 1
         With Modules(i)
-            Dim S As String
-            S = GetProcessName(.ModuleName)
-            S = left(S, InStr(S, "."))
-            If left(szExp, Len(S)) = S Then
-                szExp = Mid(szExp, Len(S) + 1)
+            Dim s As String
+            s = GetProcessName(.ModuleName)
+            s = left(s, InStr(s, "."))
+            If left(szExp, Len(s)) = s Then
+                szExp = Mid(szExp, Len(s) + 1)
                 mHandle = .ModuleHandle
                 For j = 0 To UBound(.Procs)
                     With .Procs(j)
@@ -310,9 +310,9 @@ Public Function PtrToExpr(ByVal lPtr As Long) As String
     On Error Resume Next
     For i = 0 To mNum - 1
         With Modules(i)
-            Dim S As String
-            S = GetProcessName(.ModuleName)
-            S = left(S, InStr(S, "."))
+            Dim s As String
+            s = GetProcessName(.ModuleName)
+            s = left(s, InStr(s, "."))
             mHandle = .ModuleHandle
             j = -1
             j = UBound(.Procs)
@@ -320,7 +320,7 @@ Public Function PtrToExpr(ByVal lPtr As Long) As String
             For j = 0 To UBound(.Procs)
                 With .Procs(j)
                     If lPtr = mHandle + .ProcOffset Then
-                        PtrToExpr = S & .FunName
+                        PtrToExpr = s & .FunName
                         Exit Function
                     End If
                 End With

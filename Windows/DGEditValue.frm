@@ -121,13 +121,13 @@ Private Sub SetString(ByRef szString() As Byte, ByVal iType As Long)
     If iType <> 0 Then txtASCII.Text = szString
     If iType <> 1 Then txtUnicode.Text = StrConv(szString, vbUnicode)
     If iType <> 2 Then
-        Dim S As String
-        S = Space(UBound(szString) * 2 + 2)
+        Dim s As String
+        s = Space(UBound(szString) * 2 + 2)
         Dim i As Long
-        For i = 1 To Len(S) Step 2
-            Mid(S, i, 2) = right("0" & Hex(szString(i \ 2)), 2)
+        For i = 1 To Len(s) Step 2
+            Mid(s, i, 2) = right("0" & Hex(szString(i \ 2)), 2)
         Next
-        txtHex.Text = S
+        txtHex.Text = s
     End If
     If iType <> 3 Then
         j = szString
@@ -155,14 +155,14 @@ Sub Init(ByVal szClassName As String, ByVal hKey As Long, ByVal szValueName As S
         Ret = RegQueryValueEx(Key, szValName, 0, dwClasss, dData(0), dDataLen)
     End If
     If Ret <> 0 Then
-        MsgBox "×¢²á±íÎ´Öª´íÎó£¡´íÎóºÅ£º" & Ret, vbCritical
+        MsgBox FindString("Edit.Error") & Ret, vbCritical
         Unload Me
     End If
 End Sub
 
 Private Sub cmdOK_Click()
     If RegSetValueEx(Key, szValName, 0, dwClasss, dData(0), UBound(dData) + 1) <> ERROR_SUCCESS Then
-        MsgBox "Ê§°Ü£¡", vbCritical
+        MsgBox FindString("Edit.FailValue"), vbCritical
     Else
         Unload Me
     End If
@@ -191,10 +191,10 @@ End Sub
 Private Sub txtBase64_Change()
     If Not pType Then Exit Sub
     On Error Resume Next
-    Dim S() As Byte
-    S = StrConv(txtBase64.Text, vbFromUnicode)
-    Call Base64Array_Decode(S)
-    SetString S, -1
+    Dim s() As Byte
+    s = StrConv(txtBase64.Text, vbFromUnicode)
+    Call Base64Array_Decode(s)
+    SetString s, -1
     'SetString s, 4
 End Sub
 

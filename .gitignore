@@ -10,4 +10,4 @@ MSSCCPRJ.SCC
 *.dll
 *.ocx
 *.she
-Languages\*.txt
+Languages/*.txt

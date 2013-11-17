@@ -87,7 +87,7 @@ Private Sub SetValue(ByVal DWord As Long)
 End Sub
 
 Public Sub Init(ByVal Key As Long, ByVal ValueName As String, ByVal szClass As String, ByVal dwClassType As Long)
-    Caption = "修改 " & szClass & " 值"
+    Caption = FindString("Edit1") & szClass & FindString("Value1")
     hKey = Key
     ValName = ValueName
     Class = szClass
@@ -96,7 +96,7 @@ End Sub
 
 Private Sub Command1_Click()
     If RegSetValueEx(hKey, ValName, 0, ClassType, dwData, 4) <> ERROR_SUCCESS Then
-        MsgBox "修改值失败！", vbCritical
+        MsgBox FindString("EditDword.Fail"), vbCritical
     Else
         Unload Me
     End If

@@ -319,16 +319,16 @@ Private Sub MyDisasmList_Paint()
         Dim i As Long
         .Cls
         '写列首
-        MyDisasmList.Print "地址";
+        MyDisasmList.Print FindString("Disasm.Address");
         MyDisasmList.Line (leftAddr - 45, 0)-(leftAddr - 45, .ScaleHeight)
         .CurrentX = leftAddr: .CurrentY = 0
-        MyDisasmList.Print "HEX数据";
+        MyDisasmList.Print FindString("Disasm.HexData");
         MyDisasmList.Line (leftHex - 45, 0)-(leftHex - 45, .ScaleHeight)
         .CurrentX = leftHex: .CurrentY = 0
-        MyDisasmList.Print "反汇编";
+        MyDisasmList.Print FindString("Disasm");
         MyDisasmList.Line (leftDisasm - 45, 0)-(leftDisasm - 45, .ScaleHeight)
         .CurrentX = leftDisasm: .CurrentY = 0
-        MyDisasmList.Print "注释"
+        MyDisasmList.Print FindString("Disasm.Notes")
         '然后所有ListItem画上去
         For i = 0 To numItem - 1
             If .CurrentY > .ScaleHeight Then Exit Sub

@@ -70,12 +70,12 @@ Private Sub Text1_Change()
     Ret = SendMessageTimeout(nWnd, WM_SETTEXT, 1024, StrPtr(StrConv(Text1.Text, vbFromUnicode)), 0, 5, Ret2)
     If Ret Then
         If Ret2 Then
-            Caption = "文本框浏览与修改"
+            Caption = FindString("FormTextBox")
         Else
-            Caption = "文本框浏览与修改 - 目标窗口出错"
+            Caption = FindString("FormTextBox.Error")
         End If
     Else
-        Caption = "文本框浏览与修改 - 目标窗口未响应或已经关闭"
+        Caption = FindString("FormTextBox.Timeout")
     End If
 End Sub
 
